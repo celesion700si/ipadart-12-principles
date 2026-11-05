@@ -996,7 +996,7 @@ function buildPrinciple(id, d) {
     progress(p) { rd.style.left = (p * 100).toFixed(2) + '%'; }, setEase: ec.set };
 }
 function buildCover() {
-  const back = el('div', 'page'); back.appendChild(el('div', 'wm', '12')); backs.appendChild(back);
+  const back = el('div', 'page'); back.appendChild(el('div', 'wm', '00')); backs.appendChild(back);
   const front = el('section', 'page cover');
   front.style.setProperty('--c', HEX.red);
   front.innerHTML = `
