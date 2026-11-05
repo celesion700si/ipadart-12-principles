@@ -1170,7 +1170,7 @@ $('#hudBar').addEventListener('click', e => { const r = e.currentTarget.getBound
    11. CLASSROOM — touch controls, per-principle stops,
        Agency by Design: Parts · Purposes · Complexities
    ===================================================================== */
-const PPC_SOURCE = '零件・目的・複雜（Parts, Purposes, Complexities）是哈佛 Project Zero「設計賦能 Agency by Design」的思考例程。十二法則出自 Ollie Johnston 與 Frank Thomas《The Illusion of Life》（1981），不是 Project Zero 的內容。';
+const PPC_SOURCE = '林英斌老師的設計賦能課：用哈佛 Project Zero「設計賦能 Agency by Design」的思考例程「零件・目的・複雜」，看 Ollie Johnston 與 Frank Thomas 在《The Illusion of Life》（1981）整理的動畫十二法則。';
 const STEPS = [
   { k: 'parts', zh: '零件', en: 'Parts', lead: '仔細觀察：只寫眼睛看得到的。' },
   { k: 'purposes', zh: '目的', en: 'Purposes', lead: '每個零件或動作，是為了什麼？' },
@@ -1228,7 +1228,7 @@ catch (e) { recError = '無法讀取本機紀錄。請先匯出本次內容備�
 let saveTimer = 0;
 function persist() {
   rec.updatedAt = new Date().toISOString();
-  try { localStorage.setItem(REC_KEY, JSON.stringify(rec)); recError = ''; setStatus('已自動儲存在這台裝置的瀏覽器。'); }
+  try { localStorage.setItem(REC_KEY, JSON.stringify(rec)); recError = ''; setStatus('已自動儲存。'); }
   catch (e) { recError = '這個瀏覽器無法儲存。內容仍在本頁，請立即匯出備份。'; setStatus(recError); }
 }
 const queueSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(persist, 400); };
@@ -1259,7 +1259,6 @@ const footer = () => `
     <label class="who">名字／組別<input id="pWho" type="text" autocomplete="off" value="${esc(rec.who || '')}"></label>
     <div class="exp"><button type="button" class="btn ghost" data-exp="md">匯出文字筆記</button><button type="button" class="btn ghost" data-exp="json">匯出 JSON 備份</button></div>
     <p class="status" id="pStatus" role="status" aria-live="polite">${recError}</p>
-    <p class="note">紀錄只存在這台裝置的瀏覽器，不會傳送給老師。清除瀏覽資料後可能遺失，請記得匯出。</p>
     <p class="src">${PPC_SOURCE}</p>
   </footer>`;
 function panelFor(id) {
@@ -1274,7 +1273,7 @@ function panelFor(id) {
         <p class="lead">${s.lead}</p>
         <p class="prompt">${q[s.k][0]}</p><p class="hint">${q[s.k][1]}</p>
         <textarea rows="3" data-id="${id}" data-k="${s.k}" placeholder="寫下你的想法…">${esc(r[s.k] || '')}</textarea>
-        <details><summary>參考想法</summary><p>${q[s.k][2]}</p><span class="tag">Claude 草擬・待老師確認</span></details>
+        <details><summary>參考想法</summary><p>${q[s.k][2]}</p></details>
       </section>`).join('')}
       ${footer()}`;
   }

@@ -22,11 +22,10 @@ iPadART 的動畫十二法則教材，用 Three.js 與 GSAP 製作的互動 3D �
 
 鍵盤：Space 暫停／播放、R 重播、← → 切換法則、數字鍵跳章（10–12 請在 0.45 秒內連按兩位數）、H 顯示進度列。
 
-## 來源與說明
+## 來源
 
+- 林英斌老師（iPadART）的設計賦能課程：以哈佛 Project Zero「設計賦能 Agency by Design」的思考例程「零件・目的・複雜」，觀看動畫十二法則。
 - 十二法則出自迪士尼動畫師 Ollie Johnston 與 Frank Thomas 的《The Illusion of Life》（1981）。
-- 「零件・目的・複雜」是 Project Zero「設計賦能」的思考例程；十二法則本身不是 Project Zero 的內容，本教材為獨立的教學應用，並非 Project Zero 官方資源。
-- 課堂版的參考想法由 Claude 草擬，課堂使用前請老師確認或改寫。
 - 開啟時需要連網，以載入固定版本的 Three.js 0.160.0、GSAP 3.12.5 與 Google Fonts。
 
 延伸閱讀：[零點群島 Project Zero Archipelago](https://islands.ipadart.net)
