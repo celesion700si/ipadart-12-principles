@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>動態設計十二法則・課堂版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@500;700;900&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+:root{
+  --ink:#16171C; --red:#E8513A; --blue:#3B4FE0; --yellow:#F2B93B;
+  --muted:#55565C;
+  --mono:'JetBrains Mono','Noto Sans TC',monospace;
+  --serif:'Instrument Serif',serif;
+  --sans:'Archivo','Noto Sans TC',sans-serif;
+  --zh:'Noto Sans TC',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+body{-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+
+/* ---------- 5:7 stage, 1080 × 1512 design units, scaled to fit ---------- */
+#stage{position:absolute;left:0;top:0;width:1080px;height:1512px;transform-origin:0 0;overflow:hidden;color:var(--ink);font-family:var(--zh)}
+#bg{position:absolute;inset:0;background-color:#ECECEE}
+#bg::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 46%,rgba(255,255,255,.62) 0%,rgba(255,255,255,.22) 42%,rgba(255,255,255,0) 72%)}
+#bg::after{content:"";position:absolute;inset:0;background:radial-gradient(140% 100% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.13) 100%)}
+#backs,#fronts{position:absolute;inset:0}
+
+/* ---------- 3D + annotation layer (the only area objects live in) ---------- */
+#glwrap{position:absolute;left:0;top:470px;width:1080px;height:760px}
+#glwrap canvas{position:absolute;left:0;top:0;width:1080px;height:760px;display:block}
+
+/* ---------- top bar ---------- */
+#topbar{position:absolute;left:72px;right:72px;top:46px;display:flex;justify-content:space-between;align-items:center;font:500 14px/1 var(--mono);letter-spacing:.24em;z-index:20;color:var(--ink)}
+#topbar .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);margin-right:12px;vertical-align:1px}
+#tc{font-variant-numeric:tabular-nums}
+
+/* ---------- page (shared layout system) ---------- */
+.page{position:absolute;inset:0;visibility:hidden}
+.wm{position:absolute;left:-40px;right:-40px;top:470px;height:760px;display:flex;align-items:center;justify-content:center;font-family:'Archivo';font-weight:800;font-stretch:125%;font-variation-settings:'wdth' 125;font-size:600px;line-height:1;letter-spacing:-.03em;color:var(--ink);opacity:.06;white-space:nowrap}
+.chap{position:absolute;left:72px;right:72px;top:100px;display:flex;align-items:center;gap:24px}
+.chap .no{font:italic 400 44px/1 var(--serif);white-space:nowrap}
+.chap .rule{flex:1;height:1px;background:rgba(22,23,28,.32);position:relative}
+.chap .rule i{position:absolute;top:0;left:0;width:11px;height:11px;margin:-5px 0 0 -5.5px;border-radius:50%;background:var(--c,var(--red))}
+.chap .cnt{font:500 15px/1 var(--mono);letter-spacing:.22em;white-space:nowrap}
+.head{position:absolute;left:68px;right:72px;top:172px}
+.ttl{margin:0;font-family:'Archivo',sans-serif;font-weight:800;font-stretch:125%;font-variation-settings:'wdth' 125;font-size:112px;line-height:.98;letter-spacing:-.012em}
+.ln{display:block;overflow:hidden;padding:0 0 .06em}
+.ln>span{display:inline-block;white-space:nowrap;will-change:transform}
+.sub{margin:16px 0 0 4px;font:900 38px/1.25 var(--zh);letter-spacing:.15em}
+.desc{position:absolute;left:72px;bottom:74px;width:580px;margin:0;font:500 22px/1.7 var(--zh);color:#4E4F56;letter-spacing:.02em}
+.ease{position:absolute;right:72px;bottom:64px;width:330px;padding:16px 18px 14px;border-radius:22px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.75);box-shadow:0 10px 30px rgba(22,23,28,.08),0 1px 0 rgba(255,255,255,.6) inset;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.ease .eh{display:flex;justify-content:space-between;align-items:baseline;font:500 11px/1 var(--mono);letter-spacing:.26em;color:#6A6B72}
+.ease .eh b{font:700 13px/1 var(--mono);letter-spacing:.02em;color:var(--ink)}
+.ease svg{display:block;width:294px;height:104px;margin:10px 0 6px}
+.ease .en{font:500 13px/1.4 var(--mono);color:#5A5B62;letter-spacing:.04em}
+.ease .grid{stroke:rgba(22,23,28,.16);stroke-width:1;stroke-dasharray:2 4;fill:none}
+.ease .curve{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round}
+.ease .curve2{stroke:rgba(22,23,28,.45);stroke-width:1.6;fill:none;stroke-dasharray:4 5}
+.ease .pt{fill:var(--c,var(--red));stroke:#fff;stroke-width:2.5}
+.ease .pt2{fill:#fff;stroke:var(--ink);stroke-width:2}
+
+/* opening cover specifics */
+.cover .kick{position:absolute;left:72px;right:72px;top:104px;font:500 15px/1 var(--mono);letter-spacing:.3em;display:flex;align-items:center;gap:22px}
+.cover .kick .rule{flex:1;height:1px;background:rgba(22,23,28,.32)}
+.cover .head{top:160px}
+.cover .zhT{margin:0;font:900 104px/1.12 var(--zh);letter-spacing:.06em}
+.cover .desc{font-size:19.5px;white-space:nowrap;width:600px}
+.cover .enT{margin:14px 0 0 4px;font-family:'Archivo';font-weight:800;font-stretch:125%;font-variation-settings:'wdth' 125;font-size:46px;line-height:1.1;letter-spacing:-.005em}
+
+/* epilogue + fin */
+.epi .idx{position:absolute;left:72px;right:72px;top:1148px;margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,1fr);column-gap:28px;row-gap:12px}
+.epi .idx li{border-top:1px solid rgba(22,23,28,.22);padding-top:12px;display:flex;align-items:baseline;gap:12px;white-space:nowrap}
+.epi .idx b{font:700 14px/1 var(--mono);letter-spacing:.1em;color:var(--red)}
+.epi .idx span{font:700 20px/1.2 var(--zh);letter-spacing:.06em}
+.fin{background:radial-gradient(110% 70% at 50% 45%,#23252D 0%,#16171C 70%);color:#F4F2EE}
+.fin .fwrap{position:absolute;left:72px;right:72px;top:50%;transform:translateY(-50%)}
+.fin .fword{font:italic 400 200px/1 var(--serif);margin:0 0 40px -6px}
+.fin .fzh{margin:0;font:900 92px/1.15 var(--zh);letter-spacing:.06em}
+.fin .fbrand{font-family:'Archivo',sans-serif;font-weight:800;font-stretch:125%;font-variation-settings:'wdth' 125;font-size:128px;line-height:1.05;letter-spacing:-.01em}
+.fin .fen{margin:16px 0 0 4px;font-family:'Archivo';font-weight:800;font-stretch:125%;font-variation-settings:'wdth' 125;font-size:42px;line-height:1.1}
+.fin .fnote{margin-top:64px}
+.fin .fnote i{display:block;width:88px;height:5px;border-radius:3px;background:var(--red)}
+.fin .fnote p{margin:28px 0 0;font:500 24px/1.7 var(--zh);color:#A9AAB2;letter-spacing:.06em}
+
+/* ---------- chapter cards ---------- */
+.card{position:absolute;left:0;top:-12%;width:100%;height:124%;z-index:40;visibility:hidden;--mb:0;background:var(--cc);color:var(--ct)}
+.card::before,.card::after{content:"";position:absolute;left:0;right:0;height:calc(var(--mb) * 260px);pointer-events:none}
+.card::before{bottom:100%;background:linear-gradient(to top,var(--cc),transparent)}
+.card::after{top:100%;background:linear-gradient(to bottom,var(--cc),transparent)}
+.card .stack{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%)}
+.card .layer{display:flex;flex-direction:column;align-items:center;text-align:center}
+.card .g{position:absolute;inset:0;opacity:.16;transform:translateY(calc(var(--mb) * var(--k) * 1px));filter:blur(calc(var(--mb) * 6px))}
+.card .main{position:relative;transform:scaleY(calc(1 + var(--mb) * .18));filter:blur(calc(var(--mb) * 5px))}
+.card .ckick{font:italic 400 64px/1 var(--serif);margin-bottom:28px}
+.card .num{font-family:'Archivo';font-weight:800;font-stretch:125%;font-variation-settings:'wdth' 125;font-size:420px;line-height:.86;letter-spacing:-.03em}
+.card .czh{margin-top:34px;font:900 66px/1.2 var(--zh);letter-spacing:.15em}
+.card .cen{margin-top:12px;font:italic 400 58px/1.1 var(--serif)}
+
+/* ---------- hidden HUD (H to toggle) ---------- */
+#hud{position:fixed;left:0;right:0;bottom:0;padding:10px 16px;font:500 12px/1 var(--mono);color:#ddd;background:rgba(0,0,0,.6);display:none;z-index:99;gap:14px;align-items:center}
+#hud.on{display:flex}
+#hud .bar{flex:1;height:4px;background:#444;border-radius:2px;position:relative;cursor:pointer}
+#hud .bar i{position:absolute;left:0;top:0;bottom:0;background:#fff;border-radius:2px}
+
+/* ================= classroom layout ================= */
+#app{position:fixed;inset:0;display:flex;background:#0f1014;-webkit-user-select:none;user-select:none}
+#left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+#stageBox{flex:1 1 auto;position:relative;overflow:hidden;touch-action:none;cursor:pointer}
+#controls{flex:none;padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:#15161b;color:#e9e8e4;font:500 15px/1 var(--zh)}
+#controls .row{display:flex;align-items:center;gap:10px;margin-top:10px}
+#controls button{touch-action:manipulation;min-width:48px;height:48px;border-radius:14px;border:1px solid #2e3038;background:#1f2128;color:#f2f1ed;font:600 18px/1 var(--zh);padding:0 14px;cursor:pointer}
+#controls button:active{transform:scale(.96)}
+#controls #bPlay{background:#f2f1ed;color:#16171C;min-width:64px;font-size:20px}
+#controls .speed{display:flex;border:1px solid #2e3038;border-radius:14px;overflow:hidden;margin-left:auto}
+#controls .speed button{border:0;border-radius:0;min-width:52px;background:transparent;font-size:16px}
+#controls .speed button.on{background:#3B4FE0}
+#controls #where{font:600 15px/1.2 var(--zh);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#scrub{width:100%;height:28px;accent-color:#E8513A;margin:0}
+#panel{flex:none;width:min(460px,40vw);overflow-y:auto;-webkit-overflow-scrolling:touch;background:#F6F4F0;color:var(--ink);font-family:var(--zh);-webkit-user-select:text;user-select:text;padding:0 0 calc(24px + env(safe-area-inset-bottom))}
+body.nopanel #panel{display:none}
+@media (orientation:portrait),(max-width:760px){#app{flex-direction:column}#panel{width:auto;height:42vh;border-top:1px solid #2e3038}#controls .speed button{min-width:44px}}
+#panel .ph{padding:26px 26px 18px;border-bottom:1px solid #e3dfd7;position:sticky;top:0;background:#F6F4F0;z-index:2}
+#panel .eyebrow{font:600 12px/1 var(--mono);letter-spacing:.18em;color:var(--c)}
+#panel h2{margin:12px 0 4px;font:900 30px/1.2 var(--zh);letter-spacing:.06em}
+#panel h2 .num{font:800 30px/1 'Archivo';font-stretch:125%;margin-right:14px;color:var(--c)}
+#panel .en{margin:0;font:italic 400 22px/1.2 var(--serif);color:#5a5b62}
+#panel .tip{margin:16px 26px 0;padding:12px 14px;border-radius:12px;background:#ece8df;font:500 15px/1.6 var(--zh);color:#4e4f56}
+#panel .q{margin:18px 26px 0;padding:18px 18px 14px;border-radius:18px;background:#fff;box-shadow:0 1px 0 rgba(22,23,28,.04),0 6px 18px rgba(22,23,28,.05);border-top:4px solid var(--c)}
+#panel .q h3{margin:0;display:flex;align-items:baseline;gap:10px;font:900 22px/1.2 var(--zh);letter-spacing:.08em}
+#panel .q h3 b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;font:700 15px/1 var(--mono);letter-spacing:0}
+#panel .q h3 small{font:italic 400 19px/1 var(--serif);letter-spacing:0;color:#6a6b72}
+#panel .lead{margin:8px 0 0;font:500 13px/1.5 var(--zh);color:#8a8b92}
+#panel .prompt{margin:10px 0 0;font:700 18px/1.6 var(--zh)}
+#panel .hint{margin:6px 0 0;font:500 14px/1.6 var(--zh);color:#6a6b72}
+#panel textarea{display:block;width:100%;margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid #d9d5cc;background:#fbfaf7;font:500 17px/1.6 var(--zh);color:var(--ink);resize:vertical;min-height:84px}
+#panel textarea:focus{outline:2px solid var(--c);outline-offset:1px;background:#fff}
+#panel details{margin-top:10px}
+#panel summary{cursor:pointer;font:600 14px/2 var(--zh);color:#4e4f56;touch-action:manipulation}
+#panel details p{margin:4px 0 6px;font:500 15px/1.7 var(--zh);color:#3a3b42}
+#panel .tag{display:inline-block;padding:2px 8px;border-radius:999px;background:#efece5;font:500 11px/1.6 var(--zh);color:#7a7b82}
+#panel .how{margin:18px 26px 0;padding-left:22px;font:500 16px/1.8 var(--zh)}
+#panel .how li{margin-bottom:6px}
+#panel .teacher{margin:16px 26px 0;padding:14px 16px;border-radius:14px;background:#fff;font:500 15px/1.7 var(--zh)}
+#panel .teacher ol{padding-left:20px;margin:8px 0}
+#panel .pf{margin:22px 26px 0;padding-top:18px;border-top:1px solid #e3dfd7;font:500 13px/1.7 var(--zh);color:#6a6b72}
+#panel .who{display:flex;flex-direction:column;gap:6px;font:600 14px/1 var(--zh);color:#3a3b42}
+#panel .who input{height:44px;padding:0 12px;border-radius:12px;border:1px solid #d9d5cc;background:#fff;font:500 16px/1 var(--zh)}
+#panel .exp{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+#panel .btn{touch-action:manipulation;height:44px;padding:0 16px;border-radius:12px;border:1px solid #cfcac0;background:#fff;font:600 15px/1 var(--zh);color:var(--ink);cursor:pointer}
+#panel .status{min-height:1.7em;margin:10px 0 0;color:#3B4FE0}
+#panel .note,#panel .src{margin:6px 0 0}
+</style>
+</head>
+<body>
+<div id="app"><div id="left"><div id="stageBox">
+<div id="stage">
+  <div id="bg"></div>
+  <div id="backs"></div>
+  <div id="glwrap"><canvas id="c3d"></canvas><canvas id="c2d"></canvas></div>
+  <div id="fronts"></div>
+  <div id="topbar"><span><i class="dot"></i>COMP 01 · 動態設計十二法則</span><span id="tc">00:00:00:00</span></div>
+  <div id="cards"></div>
+</div></div>
+  <div id="controls">
+    <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="本條法則的播放進度">
+    <div class="row">
+      <button type="button" id="bPrev" aria-label="上一條">‹</button>
+      <button type="button" id="bPlay" aria-label="播放">▶</button>
+      <button type="button" id="bNext" aria-label="下一條">›</button>
+      <button type="button" id="bReplay" aria-label="重播這一條">↺</button>
+      <span id="where">封面</span>
+      <div class="speed" role="group" aria-label="播放速度"><button type="button" data-s="1" class="on">1×</button><button type="button" data-s="0.5">½×</button><button type="button" data-s="0.25">¼×</button></div>
+      <button type="button" id="bPanel" aria-label="顯示或隱藏提問">提問</button>
+    </div>
+  </div>
+</div>
+<aside id="panel" aria-label="零件・目的・複雜 提問"></aside>
+</div>
+<div id="hud"><span id="hudT">0.00s</span><div class="bar" id="hudBar"><i></i></div><span id="hudS">—</span></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* =====================================================================
+   0. constants & helpers
+   ===================================================================== */
+const W = 1080, H = 1512;
+const GL = { w: 1080, h: 760 };                // 3D demo area (top: 470px)
+const HEX = { red:'#E8513A', blue:'#3B4FE0', yellow:'#F2B93B', ink:'#16171C' };
+const BG  = { red:'#F3E3D8', blue:'#DDE2F1', yellow:'#F2ECD8', neutral:'#ECECEE', dark:'#16171C' };
+const params = new URLSearchParams(location.search);
+const SHOT = params.has('t');
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const smooth = u => u * u * (3 - 2 * u);
+const E = name => gsap.parseEase(name);
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const pad2 = n => String(n).padStart(2, '0');
+
+/* =====================================================================
+   1. stage scaling (letterboxed, everything scales from canvas width)
+   ===================================================================== */
+const stage = $('#stage');
+let pixelRatio = 1;
+function fit() {
+  const bx = stage.parentElement.getBoundingClientRect(), bw = bx.width || innerWidth, bh = bx.height || innerHeight;
+  const s = Math.min(bw / W, bh / H);
+  stage.style.transform = `translate(${(bw - W * s) / 2}px,${(bh - H * s) / 2}px) scale(${s})`;
+  pixelRatio = clamp(Math.min(devicePixelRatio || 1, 2) * s, .5, 2);
+  if (renderer) { renderer.setPixelRatio(pixelRatio); renderer.setSize(GL.w, GL.h, false); }
+  c2d.width = Math.round(GL.w * pixelRatio); c2d.height = Math.round(GL.h * pixelRatio);
+  if (window.__ready) frame();                          // resizing clears both canvases: redraw at once
+}
+
+/* =====================================================================
+   2. three.js world — clay / gummy look, soft shadows on invisible floor
+   ===================================================================== */
+const c3d = $('#c3d'), c2d = $('#c2d');
+const ctx = c2d.getContext('2d');
+const renderer = new THREE.WebGLRenderer({ canvas: c3d, antialias: true, alpha: true, preserveDrawingBuffer: SHOT });
+renderer.setClearColor(0x000000, 0);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+fit(); addEventListener('resize', fit); new ResizeObserver(() => fit()).observe(stage.parentElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(30, GL.w / GL.h, 0.1, 100);
+const CAM0 = { pos: [0, 3.2, 15], target: [0, 1.9, 0], off: null };
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d2ca, 0.55));
+const key = new THREE.DirectionalLight(0xffffff, 1.55);
+key.position.set(-4.5, 10, 7);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10, near: 1, far: 30 });
+key.shadow.radius = 8; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0xffffff, 0.35); rim.position.set(5, 4, -6); scene.add(rim);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.ShadowMaterial({ opacity: 0.16 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+
+const clay = (color, o = {}) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.45, clearcoat: 0.3, clearcoatRoughness: 0.35, envMapIntensity: 0.5, ...o });
+function finish(m) { m.castShadow = true; m.receiveShadow = true; return m; }
+const ball = (r, c) => finish(new THREE.Mesh(new THREE.SphereGeometry(r, 64, 48), clay(c)));
+const box = (w, h, d, c, rad = 0.24) => finish(new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 8, rad), clay(c)));
+const capsule = (r, len, c) => finish(new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 16, 40), clay(c)));
+/* group whose origin is the object's bottom (so scale.y squashes against the floor) */
+function grounded(mesh, halfH) { const g = new THREE.Group(); mesh.position.y = halfH; g.add(mesh); return g; }
+function ghostOf(mesh, opacity = 0.22) {
+  const m = new THREE.Mesh(mesh.geometry, mesh.material.clone());
+  Object.assign(m.material, { transparent: true, opacity, depthWrite: false });
+  m.castShadow = false; m.receiveShadow = false; m.renderOrder = 2;
+  return m;
+}
+
+const _v = new THREE.Vector3();
+function proj(x, y, z) { _v.set(x, y, z).project(camera); return [(_v.x * .5 + .5) * GL.w, (-_v.y * .5 + .5) * GL.h]; }
+function applyCam(c) {
+  c = c || CAM0;
+  camera.position.set(...c.pos); camera.lookAt(...c.target);
+  if (c.off) camera.setViewOffset(GL.w, GL.h, c.off[0], c.off[1], GL.w, GL.h); else camera.clearViewOffset();
+  camera.updateMatrixWorld();
+}
+
+/* =====================================================================
+   3. 2D annotation helpers (canvas, drawn in the same tick as 3D)
+   ===================================================================== */
+const INK = '22,23,28';
+function dot(x, y, r = 2.4, a = .4, rgb = INK) { ctx.fillStyle = `rgba(${rgb},${a})`; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+function tag(ax, ay, lx, ly, text, a = 1, side = 1) {
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.font = "500 16px 'JetBrains Mono','Noto Sans TC',monospace";
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '0.04em';
+  const tw = ctx.measureText(text).width;
+  lx = clamp(lx, 72 + 40, GL.w - 72 - 40);
+  if (side < 0 && lx - 34 - tw < 72) side = 1;
+  if (side > 0 && lx + 34 + tw > GL.w - 72) side = -1;
+  ctx.strokeStyle = `rgba(${INK},.75)`; ctx.fillStyle = `rgb(${INK})`; ctx.lineWidth = 1.1;
+  ctx.beginPath(); ctx.arc(ax, ay, 3.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx, ly); ctx.lineTo(lx + side * 26, ly); ctx.stroke();
+  ctx.textBaseline = 'middle'; ctx.textAlign = side > 0 ? 'left' : 'right';
+  ctx.fillText(text, lx + side * 34, ly + 1);
+  ctx.restore();
+}
+function ring(x, y, rx, ry, a = .3) { ctx.save(); ctx.strokeStyle = `rgba(${INK},${a})`; ctx.lineWidth = 1.4; ctx.setLineDash([2, 5]); ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+function line(x1, y1, x2, y2, a = .3, dash = null, w = 1) { ctx.save(); ctx.strokeStyle = `rgba(${INK},${a})`; ctx.lineWidth = w; if (dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore(); }
+
+/* =====================================================================
+   4. scenes — every pose is a pure function of local time `lt`,
+      and `lt` comes from the single GSAP master timeline.
+   ===================================================================== */
+const SC = {};
+function makeScene(id, build) {
+  const g = new THREE.Group(); g.visible = false; scene.add(g);
+  const S = { id, g, cam: null, update() {}, draw() {}, phase() { return 0; } };
+  build(S, g); SC[id] = S; return S;
+}
+
+/* ---------- OPENING: three characters drop in with bounce.out ---------- */
+makeScene('open', (S, g) => {
+  const items = [
+    { m: ball(.62, HEX.red), hh: .62, x: -2.75 },
+    { m: box(1.25, 1.25, 1.25, HEX.blue), hh: .625, x: 0, ry: .55 },
+    { m: capsule(.46, .9, HEX.yellow), hh: .91, x: 2.75, rz: 0 },
+  ];
+  items.forEach(it => { it.g = grounded(it.m, it.hh); it.g.position.x = it.x; if (it.ry) it.m.rotation.y = it.ry; g.add(it.g); });
+  const st = [.55, 1.45, 2.35], D = .85, Y0 = 7.2, bo = E('bounce.out');
+  const yAt = (i, lt) => lerp(Y0, 0, bo(seg(lt, st[i], st[i] + D)));
+  S.update = lt => items.forEach((it, i) => {
+    it.g.visible = lt >= st[i];
+    it.g.position.y = yAt(i, lt);
+    // tiny landing squash on each floor contact (volume preserving)
+    const y = it.g.position.y, sq = lt > st[i] + .2 && y < .06 ? (1 - y / .06) * .12 * (1 - seg(lt, st[i] + D - .05, st[i] + D + .25)) : 0;
+    it.g.scale.set(1 / Math.sqrt(1 - sq), 1 - sq, 1 / Math.sqrt(1 - sq));
+  });
+  S.phase = lt => { let k = 0; st.forEach((s, i) => { if (lt >= s) k = i; }); return seg(lt, st[k], st[k] + D); };
+  S.draw = lt => items.forEach((it, i) => {
+    if (lt < st[i]) return;
+    const top = yAt(i, lt) + it.hh * 2.2;
+    for (let t = st[i]; t <= Math.min(lt, st[i] + D); t += 0.028) {
+      const yy = yAt(i, t) + it.hh; if (yy < top) continue;
+      const [x, y] = proj(it.x, yy, 0); dot(x, y, 2, .28);
+    }
+  });
+});
+
+/* ---------- 01 SQUASH & STRETCH: bouncing red ball, volume preserved ---------- */
+makeScene('p1', (S, g) => {
+  const r = .62, m = ball(r, HEX.red);
+  const orient = new THREE.Group(); orient.add(m); g.add(orient);
+  const xs = [-3.9, -1.3, 1.3, 3.9], Hh = 3.0, T0 = .4, C = .13, T = .92, N = 3;
+  // pure pose function → {x, cy, sx, sy, rot, u, contact}
+  function pose(lt) {
+    let t = lt - T0;
+    const rest = (x, sy = 1) => ({ x, cy: r * sy, sx: 1 / Math.sqrt(sy), sy, rot: 0, u: 0 });
+    if (t < 0) return rest(xs[0]);
+    for (let i = 0; i < N; i++) {
+      if (t < C) { const p = rest(xs[i], 1 - .38 * Math.sin(Math.PI * t / C)); p.contact = true; return p; }
+      t -= C;
+      if (t < T) {
+        const u = t / T, x = lerp(xs[i], xs[i + 1], u), h = Hh * 4 * u * (1 - u);
+        const vx = (xs[i + 1] - xs[i]) / T, vy = Hh * 4 * (1 - 2 * u) / T;
+        const speed = Math.abs(1 - 2 * u);
+        const sy = 1 + .3 * speed * speed, sx = 1 / Math.sqrt(sy);
+        const rot = -Math.atan2(vx, vy);
+        const ext = r * Math.sqrt((sy * Math.cos(rot)) ** 2 + (sx * Math.sin(rot)) ** 2);
+        return { x, cy: h + ext, sx, sy, rot, u };
+      }
+      t -= T;
+    }
+    if (t < C) { const p = rest(xs[N], 1 - .38 * Math.sin(Math.PI * t / C)); p.contact = true; p.u = 1; return p; }
+    const p = rest(xs[N]); p.u = 1; return p;
+  }
+  const put = (o, mesh, p) => { o.position.set(p.x, p.cy, 0); o.rotation.z = p.rot; mesh.scale.set(p.sx, p.sy, p.sx); };
+  // ghosts on the middle hop (onion skin) + squash ghost
+  const tHop1 = T0 + C + (C + T);                     // start of 2nd flight
+  const gTimes = [tHop1 + .12 * T, tHop1 + .5 * T, tHop1 + .9 * T];
+  const tSquash = T0 + 2 * (C + T) + C * .5;          // middle of 3rd contact
+  const ghosts = [...gTimes, tSquash].map(t => { const o = new THREE.Group(), gm = ghostOf(m, .2); o.add(gm); g.add(o); put(o, gm, pose(t)); return { o, t }; });
+  S.update = lt => {
+    const p = pose(lt); put(orient, m, p);
+    ghosts.forEach(gh => { gh.o.visible = lt > gh.t + .04; });
+  };
+  S.phase = lt => pose(lt).u;
+  const tEnd = T0 + N * (C + T) + C;
+  S.draw = lt => {
+    // full arc dot-matrix (faint) + travelled part (strong)
+    for (let t = T0; t <= tEnd; t += 0.03) {
+      const p = pose(t); if (p.contact) continue;
+      const [x, y] = proj(p.x, p.cy, 0); dot(x, y, t <= lt ? 2.4 : 1.6, t <= lt ? .42 : .12);
+    }
+    // ghost rings at each contact point
+    for (let i = 0; i <= N; i++) {
+      const tc = T0 + i * (C + T) + C * .5; if (lt < tc) continue;
+      const [x, y] = proj(xs[i], 0, 0); ring(x, y, 46, 9, .35);
+    }
+    const a1 = seg(lt, gTimes[2] + .05, gTimes[2] + .35), a2 = seg(lt, tSquash, tSquash + .3);
+    const ps = pose(gTimes[2]); const [sx, sy] = proj(ps.x - .35, ps.cy + .5, 0);
+    tag(sx, sy, sx - 70, sy - 70, '伸展 stretch', a1, -1);
+    const pq = pose(tSquash); const [qx, qy] = proj(pq.x + .55, pq.cy + .1, 0);
+    tag(qx, qy, qx + 60, qy - 110, '擠壓 squash', a2, 1);
+    const [vx, vy] = proj(xs[3] + .8, 2.6, 0);
+    if (lt > tEnd) tag(vx - 40, vy + 50, vx, vy, 'sy · sx² = 1', seg(lt, tEnd, tEnd + .3), 1);
+  };
+});
+
+/* ---------- 02 ANTICIPATION: blue box backs up, compresses, then dashes ---------- */
+makeScene('p2', (S, g) => {
+  const s = 1.4, m = box(s, s, s, HEX.blue), b = grounded(m, s / 2); g.add(b);
+  const x0 = -2.4, x1 = 2.9, A = .45, B = 2.75, ease = E('back.inOut(2.6)');
+  const X = lt => lerp(x0, x1, ease(seg(lt, A, B)));
+  let eMin = 0, vMax = 0;
+  for (let u = 0; u <= 1; u += .002) { eMin = Math.min(eMin, ease(u)); }
+  for (let t = A; t <= B; t += .01) vMax = Math.max(vMax, (X(t + .005) - X(t - .005)) / .01);
+  function pose(lt) {
+    const u = seg(lt, A, B), e = ease(u), v = (X(lt + .005) - X(lt - .005)) / .01;
+    const charge = u < .5 && e < 0 ? e / eMin : 0;                // 0..1 while backing up
+    const hold = u < .5 ? smooth(seg(u, .0, .3)) * (1 - smooth(seg(u, .3, .42))) : 0;
+    const crouch = Math.max(charge, hold * .9);
+    const fwd = clamp(v / vMax);
+    let sy = 1 - .22 * crouch, sx = 1 / Math.sqrt(sy);
+    const st = 1 + .32 * fwd * fwd; sx *= st; sy /= Math.sqrt(st);
+    return { x: X(lt), sx, sy, rz: .2 * crouch - .14 * fwd * fwd };
+  }
+  const put = (o, p) => { o.position.x = p.x; o.scale.set(p.sx, p.sy, 1 / Math.sqrt(p.sx * p.sy) ); o.rotation.z = p.rz; };
+  // key moments: deepest anticipation, fastest dash
+  let tBack = A, tFast = A, best = 0, vb = 0;
+  for (let t = A; t <= B; t += .005) { const e = X(t); if (e < x0 - best) { best = x0 - e; tBack = t; } const v = X(t + .005) - X(t - .005); if (v > vb) { vb = v; tFast = t; } }
+  const ghosts = [tBack, tFast].map(t => { const gm = ghostOf(m, .2), o = grounded(gm, s / 2); g.add(o); put(o, pose(t)); return { o, t }; });
+  S.update = lt => { put(b, pose(lt)); ghosts.forEach(gh => gh.o.visible = lt > gh.t + .03); };
+  S.phase = lt => seg(lt, A, B);
+  S.draw = lt => {
+    const xNow = X(lt);
+    for (let t = A; t <= Math.min(lt, B + .5); t += .035) { if (Math.abs(X(t) - xNow) < s * .62) continue; const [x, y] = proj(X(t), -.02, 1.25); dot(x, y, 2.4, .45); }
+    const pb = pose(tBack), [bx, by] = proj(pb.x - .2, s * .95, 0);
+    tag(bx, by, bx + 10, by - 110, '蓄力 anticipation', seg(lt, tBack + .05, tBack + .35), -1);
+    const [fx, fy] = proj(X(tFast), s * 1.05, 0);
+    tag(fx, fy, fx + 50, fy - 95, '衝刺 action', seg(lt, tFast + .05, tFast + .35), 1);
+    // direction arrows
+    const a = seg(lt, A, A + .3) * (1 - seg(lt, B, B + .3));
+    if (a > 0) { const [ox, oy] = proj(x0, -.35, 1.2); ctx.save(); ctx.globalAlpha = a * .55; ctx.font = "500 15px 'JetBrains Mono'"; ctx.fillStyle = `rgb(${INK})`; ctx.textAlign = 'center'; ctx.fillText('← 先退 · 後進 →', ox + 60, oy + 30); ctx.restore(); }
+  };
+});
+
+/* ---------- 03 STAGING: one yellow block among quiet grey objects ---------- */
+makeScene('p3', (S, g) => {
+  const grey = [0xE7E4DF, 0xD9D5CF, 0xEEECE8];
+  const layout = [
+    ['ball', -3.3, -1.5, .42], ['box', -2.3, .7, .7], ['cap', -1.5, -2.3, .34], ['ball', -.7, 1.0, .36],
+    ['box', -.1, -1.2, .62], ['cap', .5, 1.4, .3], ['ball', 2.6, .9, .4], ['box', 3.2, -1.5, .62],
+    ['ball', 3.4, .3, .3], ['cap', 2.4, -2.6, .32], ['box', -3.1, 1.6, .5], ['ball', .3, -3.1, .38],
+  ];
+  const others = layout.map(([k, x, z, s], i) => {
+    const c = grey[i % 3];
+    const m = k === 'ball' ? ball(s, c) : k === 'box' ? box(s, s, s, c, .14) : capsule(s, s * 1.4, c);
+    const hh = k === 'ball' ? s : k === 'box' ? s / 2 : s * 1.7;
+    m.material.transparent = true;
+    const o = grounded(m, hh); o.position.set(x, 0, z); m.rotation.y = i * .7; g.add(o); return { o, m };
+  });
+  const ys = .95, hero = box(ys, ys, ys, HEX.yellow, .16), HP = [1.5, 0, -.3], heroG = grounded(hero, ys / 2);
+  heroG.position.set(...HP); hero.rotation.y = .5; g.add(heroG);
+  const A = .5, B = 2.6, ease = E('power3.inOut');
+  const camA = { pos: [0, 5.2, 17.5], target: [0, .6, -.2] };
+  const camB = { pos: [HP[0] + .9, 3.8, HP[2] + 11.5], target: [HP[0], ys * .5, HP[2]] };
+  S.cam = lt => {
+    const u = ease(seg(lt, A, B));
+    return { pos: camA.pos.map((v, i) => lerp(v, camB.pos[i], u)), target: camA.target.map((v, i) => lerp(v, camB.target[i], u)), off: [lerp(0, -GL.w / 6, u), lerp(0, -GL.h / 6, u)] };
+  };
+  S.update = lt => {
+    const pop = E('back.out(2)')(seg(lt, .05, .5));
+    const f = smooth(seg(lt, 1.3, 2.7));
+    others.forEach((o, i) => { o.o.scale.setScalar(pop); o.m.material.opacity = lerp(1, .28, f); });
+    heroG.scale.setScalar(pop * lerp(1, 1.12, smooth(seg(lt, 2.2, 3.0))));
+  };
+  S.phase = lt => seg(lt, A, B);
+  S.draw = lt => {
+    // rule-of-thirds guides
+    const ta = seg(lt, 1.1, 1.7) * .32;
+    if (ta > 0) {
+      for (let k = 1; k <= 2; k++) { line(GL.w * k / 3, 18, GL.w * k / 3, GL.h - 18, ta, [3, 6]); line(18, GL.h * k / 3, GL.w - 18, GL.h * k / 3, ta, [3, 6]); }
+      dot(GL.w * 2 / 3, GL.h * 2 / 3, 4, ta * 2);
+    }
+    // focus frame around the hero (from its projected bounding box)
+    const fa = seg(lt, 2.0, 2.5);
+    if (fa > 0) {
+      const sc = heroG.scale.x, hs = ys * .5 * sc * 1.15;
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      for (const dx of [-hs, hs]) for (const dy of [0, ys * sc]) for (const dz of [-hs, hs]) {
+        const [px, py] = proj(HP[0] + dx, dy, HP[2] + dz); x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+      }
+      const padF = lerp(110, 22, E('power3.out')(fa)), L = 26;
+      x0 -= padF; y0 -= padF; x1 += padF; y1 += padF;
+      ctx.save(); ctx.globalAlpha = fa; ctx.strokeStyle = `rgb(${INK})`; ctx.lineWidth = 2.2;
+      [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]].forEach(([x, y, sx, sy]) => { ctx.beginPath(); ctx.moveTo(x + sx * L, y); ctx.lineTo(x, y); ctx.lineTo(x, y + sy * L); ctx.stroke(); });
+      ctx.restore();
+      tag(x0, y0 + 2, x0 - 50, y0 - 46, '焦點 focus', seg(lt, 2.4, 2.8), -1);
+    }
+    const ob = others[1].o.position, [lx, ly] = proj(ob.x, .9, ob.z);
+    tag(lx, ly, lx + 10, ly - 150, '其他 · 變淡 dimmed', seg(lt, 2.2, 2.6) * .9, 1);
+  };
+});
+
+/* clone a whole object as a translucent onion-skin ghost */
+function ghostGroup(obj, opacity = 0.22) {
+  const c = obj.clone(true);
+  c.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); Object.assign(o.material, { transparent: true, opacity, depthWrite: false }); o.castShadow = false; o.receiveShadow = false; o.renderOrder = 2; } });
+  return c;
+}
+function text2d(x, y, s, a = 1, align = 'left', size = 16) {
+  if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = `rgb(${INK})`;
+  ctx.font = `500 ${size}px 'JetBrains Mono','Noto Sans TC',monospace`; if ('letterSpacing' in ctx) ctx.letterSpacing = '0.04em';
+  ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillText(s, x, y); ctx.restore();
+}
+
+/* ---------- 04 STRAIGHT AHEAD & POSE TO POSE ---------- */
+makeScene('p4', (S, g) => {
+  // left: a freehand line drawn frame by frame (12 fps steps, no plan)
+  const pts = [];
+  for (let i = 0; i <= 200; i++) {
+    const s = i / 200;
+    pts.push(new THREE.Vector3(-4.1 + 3.1 * s + .42 * Math.sin(Math.PI * 2 * 2.3 * s),
+      .55 + 2.5 * Math.pow(Math.sin(Math.PI * s), .8) + .38 * Math.sin(Math.PI * 2 * 3.2 * s + 1), 0));
+  }
+  const curve = new THREE.CatmullRomCurve3(pts), TS = 420, RS = 10;
+  const tube = finish(new THREE.Mesh(new THREE.TubeGeometry(curve, TS, .075, RS, false), clay(HEX.ink)));
+  const pen = ball(.17, HEX.red); g.add(tube, pen);
+  const SA = .45, SB = 3.55, steps = Math.round((SB - SA) * 12);
+  const drawn = lt => Math.floor(seg(lt, SA, SB) * steps) / steps;
+  // right: yellow capsule tweened between three key poses
+  const cap = new THREE.Group(), body = capsule(.32, .7, HEX.yellow), head = ball(.09, HEX.ink);
+  head.position.set(0, .5, .26); cap.add(body, head); g.add(cap);
+  const K = [{ p: [1.35, .67, 0], r: .3 }, { p: [2.75, 3.0, 0], r: -1.57 }, { p: [4.15, .67, 0], r: -.35 }];
+  const ghosts = K.map(k => { const gh = ghostGroup(cap, .2); gh.position.set(...k.p); gh.rotation.z = k.r; g.add(gh); return gh; });
+  const TW = [[.55, 1.45], [1.6, 2.5], [2.65, 3.55]], ease = E('power2.inOut');
+  function pose(lt) {
+    let i = 0, u = 0;
+    if (lt < TW[0][0]) { i = 0; u = 0; }
+    else { for (let k = 0; k < 3; k++) if (lt >= TW[k][0]) { i = k; u = seg(lt, TW[k][0], TW[k][1]); } }
+    const a = K[i], b = K[(i + 1) % 3], e = ease(u);
+    return { p: a.p.map((v, j) => lerp(v, b.p[j], e)), r: lerp(a.r, b.r, e), u, i };
+  }
+  S.update = lt => {
+    const p = drawn(lt);
+    tube.geometry.setDrawRange(0, Math.floor(p * TS) * RS * 6);
+    pen.position.copy(curve.getPointAt(Math.max(p, .001))); pen.visible = lt > SA - .1;
+    const q = pose(lt); cap.position.set(...q.p); cap.rotation.z = q.r;
+    ghosts.forEach((gh, i) => gh.visible = lt > .25 + i * .08);
+  };
+  S.phase = lt => pose(lt).u;
+  S.draw = lt => {
+    const a = seg(lt, .2, .6);
+    line(GL.w / 2, 40, GL.w / 2, GL.h - 30, .22 * a, [3, 6]);
+    text2d(GL.w / 4, 40, '逐格・Straight ahead', a, 'center');
+    text2d(GL.w * 3 / 4, 40, '關鍵格・Pose to pose', a, 'center');
+    // pose-to-pose triangle + key labels
+    const P2 = K.map(k => proj(...k.p));
+    ctx.save(); ctx.globalAlpha = .3 * a; ctx.strokeStyle = `rgb(${INK})`; ctx.setLineDash([3, 6]); ctx.beginPath();
+    P2.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.stroke(); ctx.restore();
+    const off = [[-44, 26], [0, -70], [44, 26]];
+    P2.forEach(([x, y], i) => text2d(x + off[i][0], y + off[i][1], 'K' + (i + 1), a, 'center', 18));
+    // in-betweens of the current tween, every 2 frames (spacing shows the ease)
+    const q = pose(lt);
+    if (lt >= TW[0][0]) {
+      const t0 = TW[q.i][0];
+      for (let t = t0; t <= Math.min(lt, TW[q.i][1]); t += 1 / 12) { const [x, y] = proj(...pose(t).p); dot(x, y, 3, .45); }
+    }
+    // straight-ahead frame stamps
+    const p = drawn(lt);
+    for (let k = 1; k <= Math.floor(p * steps); k += 3) { const v = curve.getPointAt(k / steps); const [x, y] = proj(v.x, v.y, v.z); dot(x, y, 1.8, .35); }
+  };
+});
+
+/* ---------- 05 FOLLOW THROUGH & OVERLAPPING ACTION ---------- */
+makeScene('p5', (S, g) => {
+  const bs = 1.25, body = box(bs, bs, bs, HEX.blue), bG = grounded(body, bs / 2); g.add(bG);
+  const N = 7, L = .27, beads = [];
+  for (let k = 0; k < N; k++) { const b = ball(.105, HEX.ink); beads.push(b); g.add(b); }
+  const tail = ball(.3, HEX.red); g.add(tail);
+  const xA = -2.6, xB = 1.4, A = .35, B = 1.35, mv = E('power2.inOut');
+  const X = t => lerp(xA, xB, mv(seg(t, A, B)));
+  const V = t => (X(t + .005) - X(t - .005)) / .01;
+  let vmax = 0; for (let t = A; t <= B; t += .01) vmax = Math.max(vmax, V(t));
+  const D = .075, OSC = 2.3;
+  const damp = u => u <= 0 ? 0 : Math.exp(-2.3 * u) * Math.sin(10.6 * u);
+  const ang = (k, t) => { const td = t - k * D, amp = .16 + .5 * (k + 1) / N; return -amp * .9 * V(td) / vmax + amp * damp((td - B) / OSC); };
+  function chain(t) {
+    let x = X(t), y = bs + .02; const out = [];
+    for (let k = 0; k < N; k++) { const f = ang(k, t); x += L * Math.sin(f); y += L * Math.cos(f); out.push([x, y]); }
+    const f = ang(N, t); out.push([x + (L + .12) * Math.sin(f), y + (L + .12) * Math.cos(f)]);
+    return out;
+  }
+  S.update = lt => {
+    bG.position.x = X(lt);
+    const c = chain(lt); beads.forEach((b, k) => b.position.set(c[k][0], c[k][1], 0)); tail.position.set(c[N][0], c[N][1], 0);
+  };
+  S.phase = lt => clamp((lt - N * D - B) / OSC);
+  S.draw = lt => {
+    // body path + tail path (dot matrix)
+    for (let t = A; t <= Math.min(lt, B); t += .04) { const [x, y] = proj(X(t), -.02, 1.0); dot(x, y, 2.2, .4); }
+    for (let t = B; t <= lt; t += .03) { const c = chain(t); const [x, y] = proj(c[N][0], c[N][1], 0); dot(x, y, 2, .32, '232,81,58'); }
+    const [bx, by] = proj(xB + bs * .5, bs * .45, 0);
+    tag(bx, by, bx + 70, by + 20, '主體已停', seg(lt, B + .1, B + .4), 1);
+    const c = chain(lt), [tx, ty] = proj(c[N][0], c[N][1] + .3, 0);
+    tag(tx, ty, tx - 40, ty - 70, '尾端還在擺', seg(lt, B + .35, B + .7), -1);
+    const [mx, my] = proj(lerp(xA, xB, .5), -.3, 1.0);
+    text2d(mx, my + 26, '→ 主體移動', seg(lt, A, A + .3) * (1 - seg(lt, B + .4, B + .8)) * .6, 'center', 15);
+  };
+});
+
+/* ---------- 06 SLOW IN & SLOW OUT ---------- */
+makeScene('p6', (S, g) => {
+  const r = .42, xL = -3.7, xR = 3.7, yU = 2.6, yD = .0;
+  const railM = clay(0xC9CCD8);
+  const railU = finish(new THREE.Mesh(new RoundedBoxGeometry(8.4, .09, .5, 3, .04), railM)); railU.position.set(0, yU, 0); railU.castShadow = false;
+  const railD = finish(new THREE.Mesh(new RoundedBoxGeometry(8.4, .06, .5, 3, .03), railM)); railD.position.set(0, -.02, 0);
+  g.add(railU, railD);
+  const bu = ball(r, HEX.blue), bd = ball(r, HEX.red); g.add(bu, bd);
+  const f = E('power3.inOut'), GO = [.4, 2.0], BK = [2.15, 3.75];
+  const w = lt => lt < BK[0] ? seg(lt, GO[0], GO[1]) : 1 - seg(lt, BK[0], BK[1]);
+  S.update = lt => {
+    const u = w(lt), xl = lerp(xL, xR, u), xe = lerp(xL, xR, f(u));
+    bu.position.set(xl, yU + .045 + r, 0); bu.rotation.z = -xl / r;
+    bd.position.set(xe, r, 0); bd.rotation.z = -xe / r;
+  };
+  S.phase = lt => [w(lt), w(lt)];
+  S.draw = lt => {
+    const a = seg(lt, .1, .5), n = 20;                       // 1.6 s = 38 frames → a tick every 2 frames
+    for (let i = 0; i <= n; i++) {
+      const [ux, uy] = proj(lerp(xL, xR, i / n), yU - .05, .25); line(ux, uy + 4, ux, uy + 18, .55 * a, null, 1.4);
+      const [dx, dy] = proj(lerp(xL, xR, f(i / n)), 0, .9); line(dx, dy + 2, dx, dy + 16, .55 * a, null, 1.4);
+    }
+    const [l1x, l1y] = proj(xL, yU + 1.25, 0), [l2x, l2y] = proj(xL, 1.35, 0);
+    text2d(l1x, l1y, '等速 linear', a, 'left', 17);
+    text2d(l2x, l2y, '漸快漸慢 power3.inOut', a, 'left', 17);
+    const [nx, ny] = proj(xR, -.15, .9);
+    text2d(nx, ny + 44, '刻度 = 每 2 格的位置', a * .7, 'right', 14);
+    const [sx, sy] = proj(xL + .1, .1, .9), [cx, cy] = proj(0, .1, .9);
+    text2d(sx + 6, sy + 70, '密 = 慢', seg(lt, 1.0, 1.4) * .75, 'left', 14);
+    text2d(cx, cy + 70, '疏 = 快', seg(lt, 1.0, 1.4) * .75, 'center', 14);
+  };
+});
+
+/* ---------- 07 ARCS ---------- */
+makeScene('p7', (S, g) => {
+  const PV = [0, 4.55, 0], Lp = 3.15, tm = .78, R = .48;
+  const postL = box(.24, 4.8, .24, HEX.ink, .06), postR = box(.24, 4.8, .24, HEX.ink, .06), bar = box(6.3, .24, .24, HEX.ink, .06);
+  postL.position.set(-3.0, 2.4, 0); postR.position.set(3.0, 2.4, 0); bar.position.set(0, 4.8 - .12 + .12, 0);
+  g.add(postL, postR, bar);
+  const pend = new THREE.Group(); pend.position.set(...PV); g.add(pend);
+  const rod = finish(new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, Lp, 12), clay(HEX.ink)));
+  rod.position.y = -Lp / 2; const bob = ball(R, HEX.yellow); bob.position.y = -Lp - R * .6;
+  const hinge = ball(.09, HEX.ink); pend.add(rod, bob, hinge);
+  const e = E('sine.inOut'), T0 = .35, HP = 1.1;
+  function wAt(lt) { const n = Math.max(0, lt - T0) / HP, k = Math.floor(n), u = n - k; return k % 2 === 0 ? u : 1 - u; }
+  const th = lt => tm * (2 * e(wAt(lt)) - 1);
+  const bobPos = t => [PV[0] + (Lp + R * .6) * Math.sin(t), PV[1] - (Lp + R * .6) * Math.cos(t)];
+  const mech = ball(.16, 0x9A9BA3); mech.material.transparent = true; mech.material.opacity = .55; mech.castShadow = false; g.add(mech);
+  const gh = [-tm, -tm / 2, tm / 2, tm].map(t => { const o = ghostGroup(pend, .16); o.rotation.z = t; g.add(o); return { o, t }; });
+  S.update = lt => {
+    pend.rotation.z = th(lt);
+    const [ax, ay] = bobPos(-tm), [bx, by] = bobPos(tm), u = e(wAt(lt));
+    mech.position.set(lerp(ax, bx, u), lerp(ay, by, u), -.6); mech.visible = lt > 1.4;
+    gh.forEach(o => o.o.visible = lt > .5);
+  };
+  S.phase = lt => wAt(lt);
+  S.draw = lt => {
+    const a = seg(lt, .35, .8);
+    for (let i = 0; i <= 36; i++) { const t = -tm + 2 * tm * i / 36, [x, y] = bobPos(t), [px, py] = proj(x, y, 0); dot(px, py, 2.4, .42 * a); }
+    const [ax, ay] = proj(...bobPos(-tm), 0), [bx, by] = proj(...bobPos(tm), 0);
+    const b = seg(lt, 1.3, 1.7);
+    line(ax, ay, bx, by, .45 * b, [6, 6], 1.4);
+    const [cx, cy] = proj(0, PV[1] - Lp - R * .6, 0);
+    tag(cx + 60, cy - 2, cx + 110, cy + 110, '✓ 弧線：自然', seg(lt, 1.0, 1.4), 1);
+    tag((ax + bx) / 2 - 70, ay, (ax + bx) / 2 - 110, ay - 175, '× 直線：像機械', b, -1);
+    const [hx, hy] = proj(PV[0] + 1.2, PV[1] - .35, 0);
+    text2d(hx, hy, 'θ', a * .8, 'left', 20);
+  };
+});
+
+/* ---------- 08 SECONDARY ACTION ---------- */
+makeScene('p8', (S, g) => {
+  const bs = 1.3, body = box(bs, bs, bs, HEX.blue);
+  [-.26, .26].forEach(x => {
+    const eye = ball(.11, HEX.ink); eye.position.set(x, .16, bs / 2 + .02); eye.castShadow = false; body.add(eye);
+    const hl = ball(.035, 0xffffff); hl.position.set(x + .035, .2, bs / 2 + .12); hl.castShadow = false; body.add(hl);
+  });
+  const chr = new THREE.Group(); chr.add(body); g.add(chr);
+  const ringT = new THREE.Group(), ringS = new THREE.Group();
+  const torus = finish(new THREE.Mesh(new THREE.TorusGeometry(1.08, .07, 24, 120), clay(HEX.yellow)));
+  torus.rotation.x = Math.PI / 2; const moon = ball(.15, HEX.yellow); moon.position.set(1.08, 0, 0);
+  ringS.add(torus, moon); ringT.add(ringS); chr.add(ringT);
+  const T0 = .45, C = .12, T = .86, N = 3, Hh = 1.7;
+  function pose(lt) {
+    let t = lt - T0;
+    if (t < 0) return { h: 0, sy: 1, u: 0 };
+    for (let i = 0; i < N; i++) {
+      if (t < C) return { h: 0, sy: 1 - .3 * Math.sin(Math.PI * t / C), u: 0 };
+      t -= C;
+      if (t < T) { const u = t / T, sp = Math.abs(1 - 2 * u); return { h: Hh * 4 * u * (1 - u), sy: 1 + .16 * sp * sp, u }; }
+      t -= T;
+    }
+    if (t < C) return { h: 0, sy: 1 - .3 * Math.sin(Math.PI * t / C), u: 1 };
+    return { h: 0, sy: 1, u: 1 };
+  }
+  S.update = lt => {
+    const p = pose(lt), sx = 1 / Math.sqrt(p.sy);
+    chr.position.set(0, p.h, 0);
+    body.scale.set(sx, p.sy, sx); body.position.y = bs / 2 * p.sy;
+    ringT.position.y = bs / 2 * p.sy; ringT.rotation.z = .32 + .06 * Math.sin(lt * 3); ringT.rotation.x = .12;
+    ringS.rotation.y = lt * Math.PI * 2 * .85;
+  };
+  S.phase = lt => pose(lt).u;
+  S.draw = lt => {
+    const cur = pose(lt).h;
+    for (let t = T0; t <= lt; t += .03) { const h = pose(t).h; if (Math.abs(h - cur) < 1.0) continue; const [x, y] = proj(-1.25, h + bs / 2, 0); dot(x, y, 2.2, .36); }
+    const p = pose(lt), [bx, by] = proj(-.45, p.h + bs * .8, .7);
+    tag(bx, by, 250, 140, '主要動作・跳', seg(lt, .9, 1.3), -1);
+    const mp = new THREE.Vector3(); moon.getWorldPosition(mp); const [mx, my] = proj(mp.x, mp.y, mp.z);
+    tag(mx, my, 790, 180, '附屬動作・轉圈', seg(lt, 1.3, 1.7), 1);
+  };
+});
+
+/* ---------- 09 TIMING: same drop, 6 / 12 / 24 frames ---------- */
+makeScene('p9', (S, g) => {
+  const H0 = 3.3, f = E('power2.in'), up = E('power2.inOut'), R1 = .45, RISE = [1.7, 2.2], R2 = 2.35;
+  const defs = [
+    { r: .3, c: HEX.yellow, x: -2.9, n: 6, w: '輕 light' },
+    { r: .45, c: HEX.red, x: 0, n: 12, w: '' },
+    { r: .64, c: HEX.blue, x: 2.9, n: 24, w: '重 heavy' },
+  ];
+  defs.forEach(d => { d.m = ball(d.r, d.c); g.add(d.m); d.dur = d.n / 24; });
+  const start = lt => lt < RISE[0] ? R1 : R2;
+  function hAt(d, lt) {
+    if (lt >= RISE[0] && lt < RISE[1]) return H0 * up(seg(lt, RISE[0], RISE[1])) * (lt > R1 + d.dur ? 1 : 1);
+    const st = start(lt); return H0 * (1 - f(seg(lt, st, st + d.dur)));
+  }
+  function squash(d, lt) {
+    if (lt >= RISE[0] && lt < RISE[1]) return 1;
+    const tl = lt - (start(lt) + d.dur); return tl > 0 && tl < .18 ? 1 - .22 * Math.sin(Math.PI * tl / .18) : 1;
+  }
+  S.update = lt => defs.forEach(d => { const sy = squash(d, lt), sx = 1 / Math.sqrt(sy); d.m.scale.set(sx, sy, sx); d.m.position.set(d.x, hAt(d, lt) + d.r * sy, 0); });
+  S.phase = lt => lt < RISE[0] ? seg(lt, R1, R1 + 1) : lt < RISE[1] ? 1 - seg(lt, RISE[0], RISE[1]) : seg(lt, R2, R2 + 1);
+  S.draw = lt => {
+    const a = seg(lt, .15, .5);
+    defs.forEach(d => {
+      const [tx, ty] = proj(d.x, H0 + d.r * 2 + .55, 0);
+      text2d(tx, ty, `${d.n} 格・${(d.dur).toFixed(2)} 秒`, a, 'center', 17);
+      if (d.w) { const [wx, wy] = proj(d.x, -.25, .8); text2d(wx, wy + 18, d.w, a * .7, 'center', 14); }
+      // frame dots: one per frame of the current drop, revealed as frames pass
+      const st = start(lt), shown = lt >= RISE[0] && lt < RISE[1] ? d.n : Math.min(d.n, Math.floor((lt - st) * 24 + 1e-6));
+      for (let k = 0; k <= d.n; k++) {
+        const [x, y] = proj(d.x + d.r + .38, H0 * (1 - f(k / d.n)) + d.r, 0);
+        dot(x, y, 2.6, k <= shown ? .55 : .1);
+      }
+    });
+  };
+});
+
+/* ---------- 10 EXAGGERATION: ×1 vs ×3 ---------- */
+makeScene('p10', (S, g) => {
+  const sz = 1.1;
+  const mk = (x, c, o) => { const m = box(sz, sz, sz, c), b = grounded(m, sz / 2); b.position.x = x; g.add(b); return { m, b, x, ...o }; };
+  const L = mk(-2.3, HEX.blue, { cr: .1, H: .9, st: .05, crouch: [.5, .8], air: [.8, 1.4], land: [1.4, 1.8], amp: .12, ease: E('power2.out'), tag: '寫實 ×1' });
+  const R = mk(2.3, HEX.red, { cr: .4, H: 2.85, st: .26, crouch: [.5, .95], air: [.95, 1.95], land: [1.95, 3.25], amp: .45, ease: E('elastic.out(1.2, 0.3)'), tag: '誇張 ×3' });
+  function pose(o, lt) {
+    if (lt < o.crouch[0]) return { h: 0, sy: 1 };
+    if (lt < o.air[0]) return { h: 0, sy: 1 - o.cr * smooth(seg(lt, ...o.crouch)) };
+    if (lt < o.air[1]) { const u = seg(lt, ...o.air); return { h: o.H * 4 * u * (1 - u), sy: 1 + o.st * (1 - 2 * u) ** 2 }; }
+    return { h: 0, sy: 1 - o.amp * (1 - o.ease(seg(lt, ...o.land))) };
+  }
+  const put = (o, p) => { const sx = 1 / Math.sqrt(p.sy); o.b.position.y = p.h; o.b.scale.set(sx, p.sy, sx); };
+  [L, R].forEach(o => { o.gh = grounded(ghostOf(o.m, .18), sz / 2); o.gh.position.x = o.x; put({ b: o.gh }, pose(o, (o.air[0] + o.air[1]) / 2)); g.add(o.gh); });
+  S.update = lt => [L, R].forEach(o => { put(o, pose(o, lt)); o.gh.visible = lt > (o.air[0] + o.air[1]) / 2; });
+  S.phase = lt => seg(lt, ...R.land);
+  S.draw = lt => {
+    const a = seg(lt, .15, .5);
+    [L, R].forEach(o => {
+      const [tx, ty] = proj(o.x, -.3, .9); text2d(tx, ty + 24, o.tag, a, 'center', 18);
+      const peak = (o.air[0] + o.air[1]) / 2;
+      if (lt > peak) {
+        const b = seg(lt, peak, peak + .3), [x1, y1] = proj(o.x - 1.2, o.H + sz, 0), [x2] = proj(o.x + 1.2, o.H + sz, 0);
+        line(x1, y1, x2, y1, .45 * b, [3, 5], 1.2);
+        text2d(x2 + 8, y1, o === L ? 'h ×1' : 'h ×3', b * .8, 'left', 14);
+      }
+      // height dot line of the jump
+      for (let t = o.air[0]; t <= Math.min(lt, o.air[1]); t += .04) { const [x, y] = proj(o.x - .95, pose(o, t).h + sz / 2, 0); dot(x, y, 2, .35); }
+      if (lt > o.land[0]) { const [x, y] = proj(o.x, 0, 0), k = seg(lt, o.land[0], o.land[0] + .5); ring(x, y, 50 + 40 * k * (o === R ? 1.5 : .6), 10 + 8 * k, .45 * (1 - .5 * k)); }
+    });
+    const [rx, ry] = proj(R.x + .6, sz * .5, 0);
+    tag(rx, ry, rx + 40, ry + 110, '回彈更久', seg(lt, R.land[0] + .1, R.land[0] + .4), 1);
+  };
+});
+
+/* ---------- 11 SOLID DRAWING: turntable, structure lines, perspective ---------- */
+makeScene('p11', (S, g) => {
+  S.cam = () => ({ pos: [0, 3.1, 13.6], target: [0, .9, 0] });
+  const table = new THREE.Group(); g.add(table);
+  const disc = finish(new THREE.Mesh(new THREE.CylinderGeometry(3.1, 3.1, .28, 96), clay(0xF6F4F0))); disc.position.y = .14; table.add(disc);
+  const lineM = new THREE.LineBasicMaterial({ color: HEX.ink, transparent: true, opacity: .62 });
+  const loop = (pts) => new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), lineM);
+  const circle = (r, n = 64) => Array.from({ length: n }, (_, i) => new THREE.Vector3(Math.cos(i / n * Math.PI * 2) * r, 0, Math.sin(i / n * Math.PI * 2) * r));
+  // blue box + wireframe structure
+  const bs = 1.25, bx = box(bs, bs, bs, HEX.blue); bx.position.set(-1.35, .28 + bs / 2, .75); bx.rotation.y = .3; table.add(bx);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(bs * 1.02, bs * 1.02, bs * 1.02)), lineM); bx.add(edges);
+  const cross = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-bs / 2, bs * .51, -bs / 2), new THREE.Vector3(bs / 2, bs * .51, bs / 2), new THREE.Vector3(bs / 2, bs * .51, -bs / 2), new THREE.Vector3(-bs / 2, bs * .51, bs / 2),
+    new THREE.Vector3(0, -bs * .51, 0), new THREE.Vector3(0, bs * .51, 0)]), lineM); bx.add(cross);
+  // red cylinder + rings
+  const cy = finish(new THREE.Mesh(new THREE.CylinderGeometry(.52, .52, 1.4, 64), clay(HEX.red))); cy.position.set(1.5, .28 + .7, .55); table.add(cy);
+  [-.7, 0, .7].forEach(y => { const l = loop(circle(.535)); l.position.y = y; cy.add(l); });
+  [0, 1, 2, 3].forEach(i => { const a = i * Math.PI / 2, x = Math.cos(a) * .535, z = Math.sin(a) * .535; cy.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, -.7, z), new THREE.Vector3(x, .7, z)]), lineM)); });
+  // yellow sphere + latitude / longitude
+  const sr = .66, sp = ball(sr, HEX.yellow); sp.position.set(.1, .28 + sr, -1.45); table.add(sp);
+  [-55, -28, 0, 28, 55].forEach(d => { const p = d * Math.PI / 180, l = loop(circle(sr * 1.01 * Math.cos(p))); l.position.y = sr * 1.01 * Math.sin(p); sp.add(l); });
+  for (let i = 0; i < 6; i++) { const l = loop(circle(sr * 1.01)); l.rotation.x = Math.PI / 2; const o = new THREE.Group(); o.rotation.y = i * Math.PI / 6; o.add(l); sp.add(o); }
+  // table rim ticks
+  for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; const t = finish(new THREE.Mesh(new THREE.BoxGeometry(.04, .02, .22), clay(HEX.ink))); t.position.set(Math.cos(a) * 2.9, .29, Math.sin(a) * 2.9); t.rotation.y = -a; table.add(t); }
+  const SPEED = .5;
+  S.update = lt => { table.rotation.y = lt * SPEED; const pop = E('back.out(1.6)')(seg(lt, .05, .5)); table.scale.setScalar(pop); };
+  S.phase = lt => clamp(lt / P);
+  const q = new THREE.Quaternion(), c = new THREE.Vector3(), camDir = new THREE.Vector3();
+  S.draw = lt => {
+    const a = seg(lt, .5, .9);
+    if (a <= 0) return;
+    bx.updateMatrixWorld(); bx.getWorldQuaternion(q); bx.getWorldPosition(c); camera.getWorldDirection(camDir);
+    // horizon (eye level)
+    const [, hy] = proj(camera.position.x + camDir.x * 1000, camera.position.y, camera.position.z + camDir.z * 1000);
+    line(30, hy, GL.w - 30, hy, .22 * a, [2, 6]);
+    text2d(GL.w - 72, hy - 16, '視平線 eye level', a * .55, 'right', 13);
+    // pick the box axis whose vanishing point lands nearest the frame centre
+    let best = null;
+    for (const v of [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1)]) {
+      v.applyQuaternion(q); if (v.dot(camDir) < 0) v.negate();
+      const far = c.clone().addScaledVector(v, 2000), [vx, vy] = proj(far.x, far.y, far.z);
+      if (!best || Math.abs(vx - GL.w / 2) < Math.abs(best.vx - GL.w / 2)) best = { v, vx, vy };
+    }
+    const { v, vx, vy } = best, s2 = bs / 2;
+    const u = new THREE.Vector3(...(Math.abs(v.x) > .001 || Math.abs(v.z) > .001 ? [v.z, 0, -v.x] : [1, 0, 0])).normalize();
+    ctx.save(); ctx.globalAlpha = .5 * a; ctx.strokeStyle = `rgb(${INK})`; ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
+    for (const su of [-1, 1]) for (const sy of [-1, 1]) {
+      const p0 = c.clone().addScaledVector(u, su * s2).addScaledVector(v, -s2); p0.y += sy * s2;
+      const [x0, y0] = proj(p0.x, p0.y, p0.z); ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(vx, vy); ctx.stroke();
+    }
+    ctx.restore();
+    if (vx > 40 && vx < GL.w - 40) { dot(vx, vy, 5, .8 * a); tag(vx, vy, vx + 30, vy - 60, '透視線 → 消失點', a, 1); }
+    const sw = new THREE.Vector3(); sp.getWorldPosition(sw); const [sx, sy] = proj(sw.x + .5, sw.y + .45, sw.z);
+    tag(sx, sy, sx + 60, sy - 80, '結構線', seg(lt, 1.0, 1.4), 1);
+  };
+});
+
+/* ---------- 12 APPEAL: an original round mascot ---------- */
+makeScene('p12', (S, g) => {
+  const SCL = 1.45, root = new THREE.Group(); root.scale.setScalar(SCL); g.add(root);
+  const M = new THREE.Group(); root.add(M);
+  const body = finish(new THREE.Mesh(new THREE.SphereGeometry(1, 64, 48), clay(HEX.blue))); body.scale.set(1, .94, .9); body.position.y = .98; M.add(body);
+  [-.42, .42].forEach(x => { const f = ball(1, HEX.yellow); f.scale.set(.3, .16, .38); f.position.set(x, .12, .28); M.add(f); });
+  const eyes = [-.36, .36].map(x => {
+    const e = new THREE.Group(), w = ball(.25, 0xffffff), p = ball(.15, HEX.ink), h = ball(.05, 0xffffff);
+    p.position.z = .15; h.position.set(.06, .07, .29); [w, p, h].forEach(m => m.castShadow = false);
+    e.add(w, p, h); e.position.set(x, 1.16, .66); M.add(e); return e;
+  });
+  [-1, 1].forEach(s => { const ck = ball(1, HEX.red); ck.scale.set(.15, .08, .05); ck.position.set(s * .62, .86, .7); ck.rotation.y = s * .65; ck.castShadow = false; M.add(ck); });
+  const mouth = finish(new THREE.Mesh(new THREE.TorusGeometry(.13, .035, 12, 32, Math.PI), clay(HEX.ink))); mouth.rotation.z = Math.PI; mouth.position.set(0, .87, .9); M.add(mouth);
+  const ant = new THREE.Group(); ant.position.set(0, 1.86, 0); M.add(ant);
+  const stalk = finish(new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .42, 12), clay(HEX.ink))); stalk.position.y = .21;
+  const tip = ball(.15, HEX.yellow); tip.position.y = .46; ant.add(stalk, tip);
+  const armL = new THREE.Group(); armL.position.set(-.9, .95, 0); const al = capsule(.13, .3, HEX.blue); al.position.y = -.27; armL.add(al); armL.rotation.z = -.5; M.add(armL);
+  const armR = new THREE.Group(); armR.position.set(.9, .95, 0); const ar = capsule(.13, .3, HEX.blue); ar.position.y = .27; armR.add(ar); M.add(armR);
+  const D0 = .25, D1 = .9, LAND = [.9, 2.1], el = E('elastic.out(1, 0.4)'), fall = E('power2.in');
+  const BLINK = [2.2, 3.25], WAVE = [1.85, 3.7];
+  const yAt = lt => 5.2 * (1 - fall(seg(lt, D0, D1)));
+  S.update = lt => {
+    M.position.y = yAt(lt); M.visible = lt > D0 - .05;
+    const sy = lt < LAND[0] ? 1 + .12 * seg(lt, D0, D1) : 1 - .38 * (1 - el(seg(lt, ...LAND)));
+    const sx = 1 / Math.sqrt(sy); M.scale.set(sx, sy, sx);
+    let bl = 0; BLINK.forEach(b => { const u = seg(lt, b, b + .16); if (u > 0 && u < 1) bl = Math.sin(Math.PI * u); });
+    eyes.forEach(e => e.scale.y = 1 - .9 * bl);
+    const env = smooth(seg(lt, WAVE[0], WAVE[0] + .3)) * (1 - smooth(seg(lt, WAVE[1] - .3, WAVE[1])));
+    armR.rotation.z = lerp(-2.4, -.45 + .42 * Math.sin((lt - WAVE[0]) * Math.PI * 2 * 2.1), env);
+    const w = lt - LAND[0]; ant.rotation.z = w > 0 ? .4 * Math.exp(-3 * w) * Math.sin(14 * w) : 0;
+  };
+  S.phase = lt => seg(lt, ...LAND);
+  S.draw = lt => {
+    if (lt > D0) for (let t = D0; t <= Math.min(lt, D1); t += .03) { const y = yAt(t); if (y < yAt(lt) + 2.8) continue; const [x, py] = proj(0, (y + 1.2) * SCL, 0); dot(x, py, 2, .3); }
+    const [fx, fy] = proj(-.5 * SCL, .1, .5 * SCL); tag(fx, fy, fx - 110, fy + 40, '彈性落地', seg(lt, LAND[0] + .1, LAND[0] + .4), -1);
+    const [ex, ey] = proj(-.42 * SCL, 1.25 * SCL, .9 * SCL); tag(ex, ey, ex - 120, ey - 60, '眨眼', seg(lt, BLINK[0] - .2, BLINK[0] + .1), -1);
+    const hw = new THREE.Vector3(); ar.getWorldPosition(hw); const [hx, hy] = proj(hw.x, hw.y, hw.z);
+    tag(hx, hy, hx + 80, hy - 70, '揮手', seg(lt, WAVE[0] + .2, WAVE[0] + .5), 1);
+  };
+});
+
+/* ---------- EPILOGUE: the three characters breathe ---------- */
+makeScene('epi', (S, g) => {
+  const items = [
+    { m: ball(.6, HEX.red), hh: .6, x: -2.7 },
+    { m: box(1.15, 1.15, 1.15, HEX.blue), hh: .575, x: 0 },
+    { m: capsule(.42, .85, HEX.yellow), hh: .845, x: 2.7 },
+  ];
+  items.forEach(it => { it.g = grounded(it.m, it.hh); it.g.position.x = it.x; g.add(it.g); it.m.rotation.y = it.x === 0 ? .55 : 0; });
+  S.cam = () => ({ pos: [0, 2.6, 15.5], target: [0, .4, 0] });
+  S.update = lt => items.forEach((it, i) => {
+    const ph = lt * Math.PI * 2 * .55 + i * 2.1, pop = E('back.out(1.8)')(seg(lt, .1 + i * .12, .6 + i * .12));
+    it.g.position.y = .75 + .22 * Math.sin(ph);
+    const br = 1 + .035 * Math.sin(ph * 2);
+    it.g.scale.set(pop / Math.sqrt(br), pop * br, pop / Math.sqrt(br));
+  });
+});
+
+/* =====================================================================
+   5. content (copy, colors and order exactly as briefed)
+   ===================================================================== */
+const PRINCIPLES = {
+  p1: { n: 1, theme: 'red', title: ['Squash &', 'Stretch'], zh: '擠壓與伸展',
+        desc: ['受力時會變形，但體積保持不變。', '落地時壓扁，高速下墜時拉長。'],
+        ease: { name: '4u(1-u)', note: '球的高度・拋物線', fn: u => 4 * u * (1 - u) } },
+  p2: { n: 2, theme: 'blue', title: ['Anticipation'], zh: '預備動作',
+        desc: ['大動作之前，先往反方向蓄力。', '觀眾因此預期到接下來會發生什麼。'],
+        ease: { name: 'back.inOut(2.6)', note: 'X 位置・先退後進', fn: E('back.inOut(2.6)') } },
+  p3: { n: 3, theme: 'yellow', title: ['Staging'], zh: '演出佈局',
+        desc: ['一次只讓觀眾看一件事。', '用構圖、明暗和大小，把視線帶到重點上。'],
+        ease: { name: 'power3.inOut', note: '焦點轉移', fn: E('power3.inOut') } },
+  p4: { n: 4, theme: 'yellow', title: ['Straight Ahead &', 'Pose to Pose'], zh: '連續動作與關鍵姿勢',
+        desc: ['左邊逐格往下畫，動作自由但難控制；', '右邊先定關鍵姿勢再補中間格，結構清楚。'],
+        ease: { name: 'power2.inOut', note: '關鍵格之間的補間', fn: E('power2.inOut') } },
+  p5: { n: 5, theme: 'red', title: ['Follow Through &', 'Overlapping Action'], zh: '跟隨與重疊動作',
+        desc: ['主體停下之後，附著的部分還會繼續動。', '各部位的時間彼此錯開，不會同時停。'],
+        ease: { name: 'e^(-2.3u)·sin(10.6u)', note: '尾端擺角・阻尼振盪', fn: u => Math.exp(-2.3 * u) * Math.sin(10.6 * u) } },
+  p6: { n: 6, theme: 'blue', title: ['Slow In &', 'Slow Out'], zh: '漸快與漸慢',
+        desc: ['動作在起點和終點附近放慢，中段加速。', '刻度越密的地方，物體移動越慢。'],
+        ease: { name: 'power3.inOut', note: '實線＝漸快漸慢・虛線＝等速', fn: E('power3.inOut'), fn2: u => u, dot2: HEX.blue } },
+  p7: { n: 7, theme: 'yellow', title: ['Arcs'], zh: '弧形軌跡',
+        desc: ['自然的動作大多沿著弧線移動。', '走直線的東西，看起來像機械。'],
+        ease: { name: 'sine.inOut', note: '擺角 θ', fn: E('sine.inOut') } },
+  p8: { n: 8, theme: 'blue', title: ['Secondary', 'Action'], zh: '附屬動作',
+        desc: ['在主要動作之外，加一個輔助的小動作，', '讓角色更有生命，但不能搶走焦點。'],
+        ease: { name: '4u(1-u)', note: '跳躍高度', fn: u => 4 * u * (1 - u) } },
+  p9: { n: 9, theme: 'yellow', title: ['Timing'], zh: '時間控制',
+        desc: ['距離一樣，格數不同，重量感就不同。', '格數越少，看起來越輕快。'],
+        ease: { name: 'power2.in', note: '下落・24 格那顆', fn: E('power2.in') } },
+  p10: { n: 10, theme: 'blue', title: ['Exaggeration'], zh: '誇張',
+        desc: ['把動作推得比現實更遠，觀眾才讀得清楚。', '擠壓更深、跳得更高、回彈更久。'],
+        ease: { name: 'elastic.out(1.2, 0.3)', note: '誇張那顆的落地回彈', fn: E('elastic.out(1.2, 0.3)') } },
+  p11: { n: 11, theme: 'red', title: ['Solid', 'Drawing'], zh: '立體造型',
+        desc: ['把形體當成有體積、有重量的立體物來畫。', '轉到任何角度，它都站得住。'],
+        ease: { name: 'linear', note: '轉台角度・等速', fn: u => u } },
+  p12: { n: 12, theme: 'blue', title: ['Appeal'], zh: '吸引力',
+        desc: ['讓角色好看、好懂，讓人想一直看下去。', '圓潤的形狀和清楚的表情最有效。'],
+        ease: { name: 'elastic.out(1, 0.4)', note: '落地的回彈', fn: E('elastic.out(1, 0.4)') } },
+};
+const CARDS = {
+  cE: { n: 12, color: 'yellow', kick: 'Epilogue', zh: '十二法則，演完了', en: 'All twelve, in motion.' },
+};
+
+/* =====================================================================
+   6. DOM pages
+   ===================================================================== */
+const PG = {};
+const backs = $('#backs'), fronts = $('#fronts');
+function easeCard(e, theme) {
+  const card = el('div', 'ease');
+  card.style.setProperty('--c', HEX[theme]);
+  card.innerHTML = `<div class="eh"><span>EASING</span><b>${e.name}</b></div>
+    <svg viewBox="0 0 294 104"><path class="grid"/><path class="curve2"/><path class="curve"/><circle class="pt2" r="5" style="display:none"/><circle class="pt" r="6.5"/></svg>
+    <div class="en">${e.note}</div>`;
+  const svg = $('svg', card), PADX = 10, PADY = 12, SW = 294, SH = 104;
+  const fns = [e.fn, e.fn2].filter(Boolean);
+  let lo = 0, hi = 1;
+  fns.forEach(f => { for (let i = 0; i <= 200; i++) { const v = f(i / 200); lo = Math.min(lo, v); hi = Math.max(hi, v); } });
+  const mx = u => PADX + u * (SW - 2 * PADX), my = v => SH - PADY - (v - lo) / (hi - lo) * (SH - 2 * PADY);
+  const path = f => { let d = ''; for (let i = 0; i <= 120; i++) { const u = i / 120; d += (i ? 'L' : 'M') + mx(u).toFixed(1) + ' ' + my(f(u)).toFixed(1); } return d; };
+  $('.curve', svg).setAttribute('d', path(e.fn));
+  if (e.fn2) $('.curve2', svg).setAttribute('d', path(e.fn2));
+  $('.grid', svg).setAttribute('d', `M${PADX} ${my(0)}H${SW - PADX}M${PADX} ${my(1)}H${SW - PADX}`);
+  const pt = $('.pt', svg), pt2 = $('.pt2', svg);
+  if (e.fn2) { pt2.style.display = ''; if (e.dot2) pt2.style.fill = e.dot2; }
+  return { card, set(u, u2) {
+    pt.setAttribute('cx', mx(u)); pt.setAttribute('cy', my(e.fn(u)));
+    if (e.fn2) { const v = u2 ?? u; pt2.setAttribute('cx', mx(v)); pt2.setAttribute('cy', my(e.fn2(v))); }
+  } };
+}
+function buildPrinciple(id, d) {
+  const back = el('div', 'page'); back.appendChild(el('div', 'wm', pad2(d.n))); backs.appendChild(back);
+  const front = el('section', 'page');
+  front.style.setProperty('--c', HEX[d.theme]);
+  front.innerHTML = `
+    <header class="chap"><span class="no">Principle No. ${d.n}</span><span class="rule"><i></i></span><span class="cnt">${pad2(d.n)} / 12</span></header>
+    <div class="head"><h1 class="ttl">${d.title.map(t => `<span class="ln"><span>${t.replace('&', '&amp;')}</span></span>`).join('')}</h1>
+    <h2 class="sub"><span class="ln"><span>${d.zh}</span></span></h2></div>
+    <p class="desc">${d.desc.join('<br>')}</p>`;
+  const ec = easeCard(d.ease, d.theme); front.appendChild(ec.card);
+  fronts.appendChild(front);
+  const rd = $('.rule i', front);
+  PG[id] = { back, front, wm: $('.wm', back), chap: $('.chap', front), ttl: $('.ttl', front), titleSpans: [...front.querySelectorAll('.ttl .ln>span')],
+    zhSpans: [...front.querySelectorAll('.sub .ln>span')], desc: $('.desc', front), ease: ec.card, theme: d.theme,
+    progress(p) { rd.style.left = (p * 100).toFixed(2) + '%'; }, setEase: ec.set };
+}
+function buildCover() {
+  const back = el('div', 'page'); back.appendChild(el('div', 'wm', '12')); backs.appendChild(back);
+  const front = el('section', 'page cover');
+  front.style.setProperty('--c', HEX.red);
+  front.innerHTML = `
+    <div class="kick chap"><span>OPUS 5.5 × THREE.JS × P5.JS × GSAP</span><span class="rule"></span></div>
+    <div class="head"><h1 class="zhT"><span class="ln"><span>動態設計十二法則</span></span></h1>
+    <h2 class="enT"><span class="ln"><span>The 12 Principles of Animation</span></span></h2></div>
+    <p class="desc">1981 年，迪士尼動畫師 Ollie Johnston 與 Frank Thomas<br>在《The Illusion of Life》裡，整理出這十二條動畫原則。</p>`;
+  const ec = easeCard({ name: 'bounce.out', note: '落下・位置 Y', fn: E('bounce.out') }, 'red'); front.appendChild(ec.card);
+  fronts.appendChild(front);
+  PG.open = { back, front, wm: $('.wm', back), chap: $('.kick', front), titleSpans: [...front.querySelectorAll('.zhT .ln>span')],
+    zhSpans: [...front.querySelectorAll('.enT .ln>span')], desc: $('.desc', front), ease: ec.card, theme: 'neutral',
+    progress() {}, setEase: ec.set };
+}
+function buildEpilogue() {
+  const back = el('div', 'page'); backs.appendChild(back);
+  const front = el('section', 'page epi');
+  front.style.setProperty('--c', HEX.red);
+  const names = ['擠壓與伸展', '預備動作', '演出佈局', '連續動作與關鍵姿勢', '跟隨與重疊動作', '漸快與漸慢', '弧形軌跡', '附屬動作', '時間控制', '誇張', '立體造型', '吸引力'];
+  front.innerHTML = `
+    <header class="chap"><span class="no">Epilogue</span><span class="rule"><i></i></span><span class="cnt">12 / 12</span></header>
+    <div class="head"><h1 class="ttl"><span class="ln"><span>Your turn.</span></span></h1>
+    <h2 class="sub"><span class="ln"><span>換你讓它動起來。</span></span></h2></div>
+    <ol class="idx">${names.map((n, i) => `<li><b>${pad2(i + 1)}</b><span>${n}</span></li>`).join('')}</ol>`;
+  fronts.appendChild(front);
+  const rd = $('.rule i', front);
+  PG.epi = { back, front, chap: $('.chap', front), titleSpans: [...front.querySelectorAll('.ttl .ln>span')], zhSpans: [...front.querySelectorAll('.sub .ln>span')],
+    items: [...front.querySelectorAll('.idx li')], theme: 'neutral', progress(p) { rd.style.left = (p * 100).toFixed(2) + '%'; }, setEase() {} };
+}
+function buildFin() {
+  const back = el('div', 'page'); backs.appendChild(back);
+  const front = el('section', 'page fin');
+  front.innerHTML = `<div class="fwrap">
+    <h1 class="fzh fbrand"><span class="ln"><span>iPadARt.net</span></span></h1>
+    <h2 class="fen"><span class="ln"><span>The 12 Principles of Animation</span></span></h2>
+    <div class="fnote"><i></i><p>關於動態思維，你是否從設計賦能中發現改變？</p></div></div>`;
+  fronts.appendChild(front);
+  PG.fin = { back, front, chap: $('.fword', front), titleSpans: [...front.querySelectorAll('.fzh .ln>span')], zhSpans: [...front.querySelectorAll('.fen .ln>span')],
+    desc: $('.fnote', front), theme: 'dark', progress() {}, setEase() {} };
+}
+function buildCard(id, d) {
+  const c = el('div', 'card');
+  c.style.setProperty('--cc', HEX[d.color]);
+  c.style.setProperty('--ct', d.color === 'yellow' ? HEX.ink : '#FFFFFF');
+  const inner = (d.kick ? `<div class="ckick">${d.kick}</div>` : '') + `<div class="num">${pad2(d.n)}</div><div class="czh">${d.zh}</div><div class="cen">${d.en}</div>`;
+  const ghosts = [-260, -170, -90, 90, 170, 260].map(k => `<div class="layer g" style="--k:${k}">${inner}</div>`).join('');
+  c.innerHTML = `<div class="stack">${ghosts}<div class="layer main">${inner}</div></div>`;
+  $('#cards').appendChild(c);
+  PG[id] = { card: c };
+}
+function fitTitles() {
+  Object.values(PG).forEach(p => {
+    if (!p.ttl) return;
+    const maxW = 1080 - 68 - 72;
+    let fs = 112; p.ttl.style.fontSize = fs + 'px';
+    const wMax = Math.max(...p.titleSpans.map(s => s.getBoundingClientRect().width / currentScale()));
+    if (wMax > maxW) p.ttl.style.fontSize = Math.floor(fs * maxW / wMax) + 'px';
+  });
+}
+const currentScale = () => stage.getBoundingClientRect().width / W;
+
+/* =====================================================================
+   7. sequence + ONE GSAP master timeline
+   ===================================================================== */
+// 4–58s holds the 12 principles → 4.5s each
+const P = 54 / 12;
+const SEQ = [
+  ['scene', 'open', 4],
+  ['scene', 'p1', P], ['scene', 'p2', P], ['scene', 'p3', P], ['scene', 'p4', P],
+  ['scene', 'p5', P], ['scene', 'p6', P], ['scene', 'p7', P], ['scene', 'p8', P],
+  ['scene', 'p9', P], ['scene', 'p10', P], ['scene', 'p11', P], ['scene', 'p12', P],
+  ['card', 'cE', 1.2], ['scene', 'epi', 4.8], ['scene', 'fin', 2],
+];
+const SEGS = []; { let t = 0; SEQ.forEach(([type, id, dur]) => { SEGS.push({ type, id, start: t, dur, end: t + dur }); t += dur; }); }
+const TOTAL = SEGS[SEGS.length - 1].end;
+const segAt = t => SEGS.find(s => t >= s.start && t < s.end) || SEGS[SEGS.length - 1];
+const NAV = SEGS.filter(s => s.type === 'scene');
+
+let tl;
+function buildTimeline() {
+  tl = gsap.timeline({ paused: true });
+  const glwrap = $('#glwrap'), bg = $('#bg'), tdot = $('#topbar .dot'), topbar = $('#topbar');
+  Object.values(PG).forEach(p => {
+    if (p.front) gsap.set([p.front, p.back], { autoAlpha: 0 });
+    if (p.titleSpans) gsap.set([...p.titleSpans, ...(p.zhSpans || [])], { yPercent: 118 });
+    if (p.card) gsap.set(p.card, { autoAlpha: 0 });
+  });
+  SEGS.forEach(sg => {
+    const s = sg.start, e = sg.end, p = PG[sg.id];
+    if (sg.type === 'card') {
+      const c = p.card;
+      tl.set(c, { autoAlpha: 1 }, s);
+      tl.fromTo(c, { yPercent: 100, '--mb': 1 }, { yPercent: 0, '--mb': 0, duration: .26, ease: 'power3.out', immediateRender: false }, s);
+      tl.to(c, { yPercent: -100, '--mb': 1, duration: .24, ease: 'power3.in' }, e - .24);
+      tl.set(c, { autoAlpha: 0 }, e);
+      return;
+    }
+    const theme = p.theme, fin = sg.id === 'fin', has = x => x && (!Array.isArray(x) || x.length);
+    // background + top-bar cross-dissolve to the page's theme
+    tl.to(bg, { backgroundColor: BG[theme], duration: sg.id === 'open' ? .01 : .55, ease: 'power2.inOut' }, s);
+    tl.to(tdot, { backgroundColor: theme === 'neutral' || theme === 'dark' ? HEX.red : HEX[theme], duration: .4 }, s);
+    tl.to(topbar, { color: fin ? '#F4F2EE' : HEX.ink, duration: .4 }, s);
+    // page in
+    tl.set([p.front, p.back], { autoAlpha: 1, y: 0, filter: 'blur(0px)' }, s);
+    if (fin) tl.fromTo(p.front, { opacity: 0 }, { opacity: 1, duration: .5, ease: 'power1.out', immediateRender: false }, s);
+    if (has(p.wm)) tl.fromTo(p.wm, { opacity: 0, scale: 1.06 }, { opacity: .06, scale: 1, duration: 1.1, ease: 'power2.out', immediateRender: false }, s);
+    if (has(p.chap)) tl.fromTo(p.chap, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .5, ease: 'power2.out', immediateRender: false }, s + .05);
+    if (has(p.titleSpans)) tl.fromTo(p.titleSpans, { yPercent: 118 }, { yPercent: 0, duration: .8, ease: 'power3.out', stagger: .07, immediateRender: false }, s + .1);
+    if (has(p.zhSpans)) tl.fromTo(p.zhSpans, { yPercent: 118 }, { yPercent: 0, duration: .8, ease: 'power3.out', immediateRender: false }, s + .25);
+    if (has(p.desc)) tl.fromTo(p.desc, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .6, ease: 'power2.out', immediateRender: false }, s + .45);
+    if (has(p.ease)) tl.fromTo(p.ease, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: .6, ease: 'power2.out', immediateRender: false }, s + .55);
+    if (has(p.items)) tl.fromTo(p.items, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: .45, ease: 'power2.out', stagger: .14, immediateRender: false }, s + .7);
+    if (fin) return;                               // last page: no 3D, no exit
+    tl.fromTo(glwrap, { opacity: 0, y: 0, filter: 'blur(0px)' }, { opacity: 1, duration: .3, ease: 'power1.out', immediateRender: false }, s);
+    // page out: drift up + fade + slight blur
+    const out = { y: -48, autoAlpha: 0, filter: 'blur(10px)', duration: .4, ease: 'power2.in' };
+    tl.to([p.front, p.back], out, e - .4);
+    tl.to(glwrap, { y: -48, opacity: 0, filter: 'blur(10px)', duration: .4, ease: 'power2.in' }, e - .4);
+  });
+  tl.set({}, {}, TOTAL);
+}
+
+/* =====================================================================
+   8. per-tick render (rAF via gsap.ticker) — 3D, overlay, easing dots
+   ===================================================================== */
+const tcEl = $('#tc'), hud = $('#hud'), hudBar = $('#hudBar i'), hudT = $('#hudT'), hudS = $('#hudS');
+function timecode(t) { const f = Math.floor(t * 24 + 1e-6); return `${pad2(Math.floor(f / 86400))}:${pad2(Math.floor(f / 1440) % 60)}:${pad2(Math.floor(f / 24) % 60)}:${pad2(f % 24)}`; }
+let active = null;
+function frame() {
+  if (!tl) return;
+  const t = tl.time(), sg = segAt(t);
+  tcEl.textContent = timecode(t);
+  const sid = sg.type === 'scene' ? sg.id : null;
+  if (sid !== active) { if (active && SC[active]) SC[active].g.visible = false; if (sid && SC[sid]) SC[sid].g.visible = true; active = sid; }
+  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0); ctx.clearRect(0, 0, GL.w, GL.h);
+  if (sid && SC[sid]) {
+    const S = SC[sid], lt = t - sg.start;
+    S.update(lt);
+    applyCam(S.cam ? S.cam(lt) : null);
+    renderer.render(scene, camera);
+    S.draw(lt);
+    const p = PG[sid]; p.progress(clamp(lt / sg.dur)); const ph = S.phase(lt); Array.isArray(ph) ? p.setEase(...ph) : p.setEase(ph);
+  }
+  if (hud.classList.contains('on')) { hudBar.style.width = (t / TOTAL * 100) + '%'; hudT.textContent = t.toFixed(2) + 's / ' + TOTAL.toFixed(1) + 's'; hudS.textContent = sg.id + (tl.paused() ? ' · paused' : ''); }
+}
+
+/* =====================================================================
+   9. hidden keyboard controls
+   ===================================================================== */
+function jumpTo(i) { const s = NAV[clamp(i, 0, NAV.length - 1)]; tl.seek(s.start + .001, false); }
+function navIndex() { const t = tl.time(); let k = 0; NAV.forEach((s, i) => { if (t >= s.start - .01) k = i; }); return k; }
+let digitBuf = '', digitTimer = 0;
+addEventListener('keydown', e => {
+  if (!tl || (e.target.closest && e.target.closest('input,textarea,select,[contenteditable]'))) return;
+  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  else if (e.key === 'r' || e.key === 'R') replayThis();
+  else if (e.key === 'ArrowRight') $('#bNext').click();
+  else if (e.key === 'ArrowLeft') $('#bPrev').click();
+  else if (e.key === 'h' || e.key === 'H') hud.classList.toggle('on');
+  else if (/^[0-9]$/.test(e.key)) {          // type 1–12 (two digits within 0.45s), 0 = cover
+    digitBuf += e.key; clearTimeout(digitTimer);
+    digitTimer = setTimeout(() => {
+      const n = parseInt(digitBuf, 10); digitBuf = '';
+      const idx = NAV.findIndex(s => s.id === (n === 0 ? 'open' : 'p' + n));
+      if (idx >= 0) playFrom(idx);
+    }, 450);
+  }
+});
+$('#hudBar').addEventListener('click', e => { const r = e.currentTarget.getBoundingClientRect(); tl.seek((e.clientX - r.left) / r.width * TOTAL, false); });
+
+/* =====================================================================
+   11. CLASSROOM — touch controls, per-principle stops,
+       Agency by Design: Parts · Purposes · Complexities
+   ===================================================================== */
+const PPC_SOURCE = '零件・目的・複雜（Parts, Purposes, Complexities）是哈佛 Project Zero「設計賦能 Agency by Design」的思考例程。十二法則出自 Ollie Johnston 與 Frank Thomas《The Illusion of Life》（1981），不是 Project Zero 的內容。';
+const STEPS = [
+  { k: 'parts', zh: '零件', en: 'Parts', lead: '仔細觀察：只寫眼睛看得到的。' },
+  { k: 'purposes', zh: '目的', en: 'Purposes', lead: '每個零件或動作，是為了什麼？' },
+  { k: 'complexities', zh: '複雜', en: 'Complexities', lead: '有什麼是你一開始沒注意到的？' },
+];
+const PPC = {
+  p1: { parts: ['畫面裡有哪些「零件」？球、地面，還有哪些線和點？', '先列看得到的東西：形狀、顏色、殘影、虛線圈。', '紅球、地面、點狀的彈跳弧線、淡淡的殘影球、落地處的虛線圈，還有「伸展」「擠壓」兩個標籤。'],
+        purposes: ['球落地時為什麼要壓扁？往下掉時為什麼要拉長？', '想像它是一顆不會變形的鐵球，感覺有什麼不同？', '壓扁讓人感覺到撞擊和彈性；拉長讓人感覺到速度。兩者一起，球才像是有重量、會彈的東西。'],
+        complexities: ['球壓扁時，左右變寬了多少？為什麼體積不能變？', '用 ¼× 慢速看落地那一格。', '變矮的同時一定要變寬，體積才守恆。如果只壓扁不變寬，球看起來會像漏氣、縮小了。'] },
+  p2: { parts: ['方塊在衝出去之前，做了哪幾個動作？', '用 ¼× 慢速，數一數它的動作順序。', '先往後退、身體壓低、往後仰；接著快速往前衝、拉長、前傾；最後稍微衝過頭再回來。'],
+        purposes: ['為什麼大動作之前要先往反方向退？', '如果直接衝出去，觀眾來得及看懂嗎？', '往反方向蓄力，讓觀眾預期「接下來有大動作」，動作也因此顯得更有力。'],
+        complexities: ['看地上的軌跡點：哪裡密、哪裡疏？這說明速度怎麼變化？', '點越密代表越慢。', '後退和停下的地方很密（慢），衝刺時很疏（快）。這條速度變化就是右下角的 back.inOut 曲線。'] },
+  p3: { parts: ['畫面上有哪些物件？哪一個和其他都不一樣？', '形狀、顏色、大小都可以比較。', '一群灰白的球、方塊和膠囊，只有一個黃色方塊。後來還出現三分線和對焦框。'],
+        purposes: ['鏡頭推近、其他物件變淡、出現對焦框，這些設計是為了什麼？', '你的眼睛最後停在哪裡？', '把觀眾的視線帶到唯一的重點上，一次只讓觀眾看一件事。'],
+        complexities: ['黃方塊最後停在畫面哪裡？為什麼不放在正中間？', '看三分線的交叉點。', '它停在三分線的交叉點上。偏離正中間的位置讓畫面有方向感和呼吸空間，比置中更有張力。'] },
+  p4: { parts: ['左右兩邊，各用什麼方式讓東西動起來？', '左邊的線是怎麼長出來的？右邊的 K1、K2、K3 是什麼？', '左邊一條線一格一格往下畫；右邊先定好 K1、K2、K3 三個關鍵姿勢，再補上中間的動作。'],
+        purposes: ['為什麼動畫師常常先定關鍵姿勢，再補中間格？', '如果要讓角色準確走到某個位置，哪一種比較好控制？', '先定關鍵姿勢，結構和時間都比較好掌握；逐格畫比較自由、有驚喜，但容易走偏。'],
+        complexities: ['K1 到 K2 之間的小點為什麼不是平均分布？什麼時候反而適合用逐格？', '注意點的疏密，和右下角的 power2.inOut 曲線。', '補間用了漸快漸慢，所以兩端密、中間疏。火焰、水花、煙這類難以預測的動作，常用逐格。'] },
+  p5: { parts: ['這個角色由哪些部分組成？', '從下往上數。', '一個藍色方塊、上面 7 顆黑色小珠子，最頂端一顆紅球。'],
+        purposes: ['為什麼方塊已經停了，上面還要繼續擺？', '想想看甩頭髮、揮旗子的樣子。', '附著的部分有自己的慣性，會晚一點停。這讓動作看起來有重量、有彈性，不像一整塊硬梆梆的東西。'],
+        complexities: ['從珠子到紅球，誰最先停、誰最後停？為什麼越外面擺得越大？', '用 ¼× 慢速看方塊停下之後。', '靠近方塊的珠子先停，紅球最後停。每一節都比前一節晚一點，延遲一層層累積，所以尾端擺得最大、最久。'] },
+  p6: { parts: ['兩條軌道上各有什麼？刻度代表什麼？', '刻度是每隔 2 格畫面，球所在的位置。', '上面一顆藍球、下面一顆紅球，兩顆同時出發、同時到達。軌道下方的刻度，是每 2 格畫面球的位置。'],
+        purposes: ['哪一顆球比較像真實世界的東西在移動？為什麼？', '想想看汽車起步和煞車。', '下面的紅球比較自然。真實的物體需要時間加速和減速，不會一出發就是全速。'],
+        complexities: ['下面的刻度兩端密、中間疏。如果刻度全部一樣密，會怎樣？', '比較上下兩條刻度。', '刻度一樣密就是等速（上面的藍球），看起來像機器。刻度的疏密，就是速度的設計圖。'] },
+  p7: { parts: ['擺錘由哪些零件組成？那顆灰色小球在做什麼？', '支架、桿子、樞紐，還有什麼？', '黑色門型支架、樞紐、細桿和黃色球。灰色小球沿著直線走，和黃球同步。'],
+        purposes: ['為什麼要畫一條直線虛線，再放一顆沿直線走的灰球來對照？', '兩顆球同時看，哪一顆比較自然？', '用對照讓差異被看見：沿弧線走的黃球很自然，走直線的灰球像機器。'],
+        complexities: ['擺錘在最高點和最低點的速度一樣嗎？從哪裡看出來？', '看弧線上的點，和右下角的 sine.inOut 曲線。', '不一樣。最高點最慢、最低點最快。真實的擺動同時有弧線和速度變化。'] },
+  p8: { parts: ['角色身上有哪些動作？哪一個是主要動作、哪一個是附屬動作？', '分開看「身體」和「光環」。', '主要動作是方塊一直跳；附屬動作是黃色光環和小球繞著它轉圈。'],
+        purposes: ['光環的旋轉為角色增加了什麼？', '把光環遮住再看一次，有什麼不同？', '它讓角色更有個性和生命感，像是開心或興奮，但不改變「跳」這個主要動作。'],
+        complexities: ['如果光環轉得非常快、變得非常大，會發生什麼事？', '附屬動作和主要動作，誰應該比較顯眼？', '附屬動作會搶走焦點，觀眾就看不出角色在跳。附屬動作要夠明顯，但永遠不能比主要動作更搶眼。'] },
+  p9: { parts: ['三顆球有什麼一樣、什麼不一樣？', '比較高度、距離、大小、落下花的時間。', '高度和距離一樣；大小和顏色不同；落下分別用了 6、12、24 格畫面，旁邊的點就是每一格的位置。'],
+        purposes: ['為什麼要用不同的格數，來表現不同的重量感？', '哪一顆看起來最輕？哪一顆最重？', '格數越少，動作越快，看起來越輕盈；格數越多，越慢，看起來越重、越有份量。'],
+        complexities: ['如果讓大藍球只用 6 格落下，你覺得它是什麼材質？', '大小和時間「說的話」不一致時，大腦會相信哪一個？', '它會像氣球或保麗龍一樣輕。重量感主要由時間決定，不是由大小決定。'] },
+  p10: { parts: ['左右兩個方塊的動作，有哪些地方不同？', '比較壓多深、跳多高、落地後怎麼停。', '右邊的紅方塊壓得更深、跳得更高（虛線 ×3），落地後還彈了好幾下才停。'],
+        purposes: ['誇張版讓你更容易讀到什麼？', '如果站在教室最後一排看，哪一個比較清楚？', '誇張讓「蓄力、跳、落地」每個階段都更清楚，觀眾不需要仔細看也讀得懂。'],
+        complexities: ['誇張到什麼程度，就會變得不可信？×3 剛好嗎？', '想想卡通和寫實電影的差別。', '要看作品的風格和目的。誇張仍要保留合理的規則，例如先蓄力再跳、落地會壓扁，否則觀眾會覺得假。'] },
+  p11: { parts: ['轉台上有哪些形體？各自畫了哪種結構線？', '方塊、圓柱、球，各有什麼線？', '藍方塊有線框和對角線；紅圓柱有上中下三圈和直線；黃球有經緯線。另外還有視平線和透視線。'],
+        purposes: ['為什麼要畫出結構線和透視線？', '少了這些線，你還看得出它們是立體的嗎？', '結構線幫助我們把形體當成有體積的立體物來理解；透視線讓不同角度下的形狀仍然合理。'],
+        complexities: ['轉台旋轉時，消失點有時會跳到另一邊。為什麼？', '方塊有兩組互相垂直的水平邊。', '方塊有兩組方向不同的平行邊，各有自己的消失點。轉到某些角度，比較靠近畫面中央的那一組會換掉。'] },
+  p12: { parts: ['這個角色用了哪些形狀和顏色？做了哪些動作？', '從身體、臉、手腳，到天線。', '圓滾滾的藍色身體、大眼睛、紅色腮紅、微笑、黃色的腳和天線；它彈性落地、眨眼兩次，還揮手。'],
+        purposes: ['大眼睛、圓身體、眨眼和揮手，各讓你感覺到什麼？', '你覺得它的個性是什麼？', '圓潤的形狀讓人覺得安全友善；大眼睛和眨眼讓它像有感情；揮手像在和你打招呼。'],
+        complexities: ['如果把它改成尖角、小眼睛，還會吸引人嗎？吸引力等於可愛嗎？', '想想你喜歡的反派角色。', '吸引力不只是可愛，而是「讓人想一直看下去」。反派也可以很有吸引力，關鍵是造型清楚、個性鮮明。'] },
+};
+const IMAGINE = {
+  q: '如果可以…：選一條你最有感覺的法則，用 iPad 慢動作錄下一個日常動作，例如丟球、關門、跳起來。找出它的零件、目的和複雜之處，再想想：如果可以改一個地方，你會怎麼讓它更有生命？',
+  hint: '這是設計賦能的「發現機會」：從看懂設計，到相信自己能動手改變它。',
+};
+const DRAFT_TAG = '參考想法由 Claude 草擬，課堂使用前請老師確認或改寫。';
+
+/* ---------- local records (this browser only) ---------- */
+const REC_KEY = 'pz12-classroom-v1';
+let rec = { schemaVersion: 1, who: '', responses: {}, updatedAt: null }, recError = '';
+try { const raw = localStorage.getItem(REC_KEY); if (raw) { const p = JSON.parse(raw); if (p && p.schemaVersion === 1 && typeof p.responses === 'object') rec = p; } }
+catch (e) { recError = '無法讀取本機紀錄。請先匯出本次內容備份。'; }
+let saveTimer = 0;
+function persist() {
+  rec.updatedAt = new Date().toISOString();
+  try { localStorage.setItem(REC_KEY, JSON.stringify(rec)); recError = ''; setStatus('已自動儲存在這台裝置的瀏覽器。'); }
+  catch (e) { recError = '這個瀏覽器無法儲存。內容仍在本頁，請立即匯出備份。'; setStatus(recError); }
+}
+const queueSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(persist, 400); };
+function setStatus(t) { const s = $('#pStatus'); if (s) s.textContent = t; }
+function exportRec(fmt) {
+  let body, type;
+  if (fmt === 'json') { body = JSON.stringify(rec, null, 2); type = 'application/json'; }
+  else {
+    const lines = [`# 動態設計十二法則・課堂紀錄`, '', `- 名字／組別：${rec.who || '（未填）'}`, `- 匯出時間：${new Date().toLocaleString('zh-TW')}`, `- 思考例程：零件・目的・複雜（Agency by Design）`, ''];
+    Object.keys(PRINCIPLES).forEach(id => {
+      const r = rec.responses[id] || {}; if (!STEPS.some(s => (r[s.k] || '').trim())) return;
+      const d = PRINCIPLES[id]; lines.push(`## ${pad2(d.n)} ${d.zh}｜${d.title.join(' ')}`, '');
+      STEPS.forEach(s => lines.push(`- **${s.zh} ${s.en}**：${(r[s.k] || '').trim() || '—'}`)); lines.push('');
+    });
+    const im = (rec.responses.epi || {}).imagine; if (im && im.trim()) lines.push('## 如果可以… Imagine If', '', im.trim(), '');
+    body = lines.join('\n'); type = 'text/markdown';
+  }
+  const url = URL.createObjectURL(new Blob([body], { type: type + ';charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = `十二法則-課堂紀錄-${new Date().toISOString().slice(0, 10)}.${fmt === 'json' ? 'json' : 'md'}`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+  setStatus('已準備匯出檔案，請查看瀏覽器的下載項目。');
+}
+
+/* ---------- side panel ---------- */
+const panel = $('#panel'), esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const footer = () => `
+  <footer class="pf">
+    <label class="who">名字／組別<input id="pWho" type="text" autocomplete="off" value="${esc(rec.who || '')}"></label>
+    <div class="exp"><button type="button" class="btn ghost" data-exp="md">匯出文字筆記</button><button type="button" class="btn ghost" data-exp="json">匯出 JSON 備份</button></div>
+    <p class="status" id="pStatus" role="status" aria-live="polite">${recError}</p>
+    <p class="note">紀錄只存在這台裝置的瀏覽器，不會傳送給老師。清除瀏覽資料後可能遺失，請記得匯出。</p>
+    <p class="src">${PPC_SOURCE}</p>
+  </footer>`;
+function panelFor(id) {
+  if (PRINCIPLES[id]) {
+    const d = PRINCIPLES[id], q = PPC[id], r = rec.responses[id] || {};
+    return `<header class="ph" style="--c:${HEX[d.theme]}">
+        <div class="eyebrow">設計賦能・零件・目的・複雜</div>
+        <h2><span class="num">${pad2(d.n)}</span>${d.zh}</h2><p class="en">${d.title.join(' ')}</p></header>
+      <p class="tip">先用 1× 看一次，再用 ¼× 慢速看。點一下畫面可以暫停。</p>
+      ${STEPS.map((s, i) => `<section class="q" style="--c:${HEX[d.theme]}">
+        <h3><b>${i + 1}</b>${s.zh}<small>${s.en}</small></h3>
+        <p class="lead">${s.lead}</p>
+        <p class="prompt">${q[s.k][0]}</p><p class="hint">${q[s.k][1]}</p>
+        <textarea rows="3" data-id="${id}" data-k="${s.k}" placeholder="寫下你的想法…">${esc(r[s.k] || '')}</textarea>
+        <details><summary>參考想法</summary><p>${q[s.k][2]}</p><span class="tag">Claude 草擬・待老師確認</span></details>
+      </section>`).join('')}
+      ${footer()}`;
+  }
+  if (id === 'epi' || id === 'fin') {
+    const r = rec.responses.epi || {};
+    return `<header class="ph" style="--c:${HEX.red}"><div class="eyebrow">設計賦能・發現機會</div><h2>如果可以…</h2><p class="en">Imagine If…</p></header>
+      <section class="q" style="--c:${HEX.red}"><p class="prompt">${IMAGINE.q}</p><p class="hint">${IMAGINE.hint}</p>
+        <textarea rows="5" data-id="epi" data-k="imagine" placeholder="我選的法則是…，我想改的是…">${esc(r.imagine || '')}</textarea></section>
+      ${footer()}`;
+  }
+  return `<header class="ph" style="--c:${HEX.blue}"><div class="eyebrow">課堂版・使用方式</div><h2>動態也是被設計的</h2><p class="en">The 12 Principles of Animation × Agency by Design</p></header>
+    <ol class="how">
+      <li><b>每條法則播完會自動停下。</b>按 ▶ 或往左滑，進到下一條。</li>
+      <li><b>點一下畫面</b>暫停／播放；左右滑動可以切換法則。</li>
+      <li><b>¼× 慢速</b>最適合「仔細觀察」：看殘影、軌跡點和右下角的 Easing 曲線。</li>
+      <li>每條法則都有三個提問：<b>零件、目的、複雜</b>。先自己寫，再打開「參考想法」比較。</li>
+    </ol>
+    <details class="teacher"><summary>給老師：建議流程（約 10 分鐘一條）</summary>
+      <ol><li>先用 1× 播一次，不說明，讓學生直接看。</li><li>¼× 慢速再看，學生點畫面暫停，寫下「零件」。</li><li>小組討論「目的」：這個設計是為了讓觀眾感覺到什麼？</li><li>「複雜」的答案要回到動畫裡驗證，必要時拖曳進度條重看。</li></ol>
+      <p>${DRAFT_TAG}</p></details>
+    ${footer()}`;
+}
+let panelId = null;
+function renderPanel(id) {
+  if (id === panelId || id === 'cE') return; panelId = id;
+  panel.innerHTML = panelFor(id); panel.scrollTop = 0;
+}
+panel.addEventListener('input', e => {
+  const ta = e.target.closest('textarea');
+  if (ta) { const { id, k } = ta.dataset; (rec.responses[id] ||= {})[k] = ta.value; queueSave(); }
+  else if (e.target.id === 'pWho') { rec.who = e.target.value; queueSave(); }
+});
+panel.addEventListener('click', e => { const b = e.target.closest('[data-exp]'); if (b) exportRec(b.dataset.exp); });
+
+/* ---------- playback: stop at the end of every page ---------- */
+const STOP_LEAD = .42;                                  // just before the page-out transition
+const stopAt = sg => sg.end - STOP_LEAD;
+const stoppable = sg => sg.type === 'scene' && sg.id !== 'fin';
+let lastT = 0;
+function autoStop() {
+  const t = tl.time(), sg = segAt(t);
+  if (!tl.paused() && stoppable(sg) && lastT < stopAt(sg) && t >= stopAt(sg)) { tl.pause(); tl.seek(stopAt(sg), false); }
+  lastT = tl.time();
+}
+const atStop = () => { const sg = segAt(tl.time()); return stoppable(sg) && tl.time() >= stopAt(sg) - .02; };
+function playFrom(i) { const s = NAV[clamp(i, 0, NAV.length - 1)]; lastT = s.start; tl.seek(s.start + .001, false); tl.play(); }
+function togglePlay() {
+  if (tl.paused()) { if (atStop()) playFrom(navIndex() + 1); else tl.play(); }
+  else tl.pause();
+}
+function replayThis() { playFrom(navIndex()); }
+
+const bPlay = $('#bPlay'), scrub = $('#scrub'), whereEl = $('#where');
+$('#bPrev').onclick = () => { const k = navIndex(); playFrom(tl.time() - NAV[k].start > .6 && !atStop() ? k : k - 1); };
+$('#bNext').onclick = () => playFrom(navIndex() + 1);
+$('#bReplay').onclick = replayThis;
+bPlay.onclick = togglePlay;
+document.querySelectorAll('.speed button').forEach(b => b.onclick = () => {
+  tl.timeScale(+b.dataset.s); document.querySelectorAll('.speed button').forEach(x => x.classList.toggle('on', x === b));
+});
+$('#bPanel').onclick = () => { document.body.classList.toggle('nopanel'); requestAnimationFrame(fit); };
+scrub.addEventListener('input', () => {
+  const sg = NAV[navIndex()], end = stoppable(sg) ? stopAt(sg) : sg.end - .01;
+  tl.pause(); tl.seek(sg.start + (end - sg.start) * scrub.value / 1000, false); lastT = tl.time();
+});
+
+/* tap = play / pause, horizontal swipe = previous / next */
+const stageBox = $('#stageBox'); let down = null;
+stageBox.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+stageBox.addEventListener('pointerup', e => {
+  if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y, dt = performance.now() - down.t; down = null;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) { dx < 0 ? $('#bNext').click() : $('#bPrev').click(); }
+  else if (Math.hypot(dx, dy) < 12 && dt < 500) togglePlay();
+});
+stageBox.addEventListener('pointercancel', () => { down = null; });
+
+function classroomTick() {
+  autoStop();
+  const t = tl.time(), sg = segAt(t), nav = NAV[navIndex()];
+  renderPanel(sg.id);
+  bPlay.textContent = tl.paused() ? '▶' : '❚❚';
+  bPlay.setAttribute('aria-label', tl.paused() ? (atStop() ? '下一條' : '播放') : '暫停');
+  const end = stoppable(nav) ? stopAt(nav) : nav.end;
+  if (document.activeElement !== scrub) scrub.value = Math.round(clamp((t - nav.start) / (end - nav.start)) * 1000);
+  const d = PRINCIPLES[nav.id];
+  whereEl.textContent = d ? `${pad2(d.n)} / 12　${d.zh}` : nav.id === 'open' ? '封面' : nav.id === 'epi' ? 'Epilogue' : 'Fin';
+}
+
+/* =====================================================================
+   10. boot
+   ===================================================================== */
+buildCover();
+Object.entries(PRINCIPLES).forEach(([id, d]) => buildPrinciple(id, d));
+Object.entries(CARDS).forEach(([id, d]) => buildCard(id, d));
+buildEpilogue(); buildFin();
+const fontsReady = Promise.all([
+  "800 100px Archivo", "italic 400 40px 'Instrument Serif'", "500 16px 'JetBrains Mono'", "700 16px 'JetBrains Mono'",
+  "900 40px 'Noto Sans TC'", "500 20px 'Noto Sans TC'",
+].map(f => document.fonts.load(f, '動態設計十二法則 Aa01'))).then(() => document.fonts.ready);
+await Promise.race([fontsReady, new Promise(r => setTimeout(r, 5000))]);
+fitTitles();
+// pre-compile every material once so scene switches never hitch on shader compilation
+Object.values(SC).forEach(S => S.g.visible = true); applyCam(null); renderer.compile(scene, camera); renderer.render(scene, camera);
+Object.values(SC).forEach(S => S.g.visible = false);
+buildTimeline();
+gsap.ticker.add(() => { classroomTick(); frame(); });
+window.tl = tl; window.SEGS = SEGS;
+if (SHOT) { tl.seek(parseFloat(params.get('t')) || 0); tl.pause(); frame(); }
+else tl.play(0);
+window.__ready = true;
+</script>
+</body>
+</html>
